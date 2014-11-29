@@ -43,7 +43,11 @@ void FirstPlot::Begin(TTree * /*tree*/)
    ptHist = new TH1F("ptHist", "p_{T} of HV pions;p_{T} [GeV]", 100, 0, 1000);
    etaHist = new TH1F("etaHist", "#eta of HV pions; #eta", 100, -4.0, 4.0);
    phiHist = new TH1F("phiHist", "#phi of HV pions; #phi", 100, -4.0, 4.0);
-   angDiffHist = new TH1F("angDiffHist", "Angular difference between HV pion and jet; sqrt(#eta^2+#phi^2)", 100, 0, 4.0);
+   angDiffHist = new TH1F("angDiffHist", "#Delta r between HV pion and jet; sqrt(#eta^2+#phi^2)", 100, 0, 4.0);
+   jetEtaHist = new TH1F("jetEtaHist", "jet #eta; #eta", 100, 0, 4.0);
+   jetPhiHist = new TH1F("jetPhiHist", "jet #phi; #phi", 100, 0, 4.0);
+   jetptHist = new TH1F("jetptHist", "jet p_{T}; p_{T} [GeV]", 100, 0, 1000);
+
 }
 
 void FirstPlot::SlaveBegin(TTree * /*tree*/)
@@ -80,20 +84,12 @@ Bool_t FirstPlot::Process(Long64_t entry)
   cout << "  -> Got entry" << endl;
 
   TBranch *b = fChain->GetBranch("mc_pdgId");
-  if (b == 0) {
+  if (b == 0) 
+{
     cout << "  -> Oh, that is very bad. This is boot!" << endl;
     return true;
   }
   b->GetEntry(entry);
-  cout << "  -> Got Branch" << endl;
-
-  cout << "  -> mc_pdgId = " << mc_pdgId << endl;
-  cout << "  -> mc_pdgId->size() = " << mc_pdgId->size() << endl;
-  cout << "  -> mc_phi = " << mc_phi << endl;
-  cout << "  -> mc_phi->size() = " << mc_phi->size() << endl;
-  for (size_t i = 0; i < min((size_t)10, mc_phi->size()); i++) {
-    cout << "  -> mc_phi[" << i << "] = " << mc_phi->at(i) << " rads" << endl;
-  }
 
   for (size_t i = 0; i < mc_pdgId->size(); i++)
     {
@@ -105,22 +101,45 @@ Bool_t FirstPlot::Process(Long64_t entry)
 		ptHist->Fill((mc_pt->at(i))/1000);
 	  	etaHist->Fill(hvEta);
 	  	phiHist->Fill(hvPhi);
-		float minDeltaR = 1000;
-	  	for (size_t j = 0; j < jet_AntiKt4LCTopo_eta->size(); j++) {
-			float jetEta = jet_AntiKt4LCTopo_eta->at(j);
-			float jetPhi = jet_AntiKt4LCTopo_phi->at(j);
-			float deltaPhi = TVector2::Phi_mpi_pi(hvPhi-jetPhi);
-			float deltaEta = hvEta-jetEta;
-			float deltaR = sqrt(deltaPhi*deltaPhi + deltaEta*deltaEta);
-			if (deltaR < minDeltaR) {
-				minDeltaR = deltaR;
-			}
+		size_t nearestJet = GetNearestJet(hvEta, hvPhi, jet_AntiKt4LCTopo_eta, jet_AntiKt4LCTopo_phi);
+		float jetEta = jet_AntiKt4LCTopo_eta->at(nearestJet);
+		float jetPhi = jet_AntiKt4LCTopo_phi->at(nearestJet);
+		float deltaPhi = TVector2::Phi_mpi_pi(hvPhi-jetPhi);
+		float deltaEta = hvEta-jetEta;
+		float deltaR = sqrt(deltaPhi*deltaPhi + deltaEta*deltaEta);
+		angDiffHist->Fill(deltaR);
+		if (deltaR < 0.3) 
+		{
+			jetptHist->Fill(jet_AntiKt4LCTopo_pt->at(nearestJet)/1000);
+			cout << "jet index: " << nearestJet << endl;
+			cout << "pt: " << jet_AntiKt4LCTopo_pt->at(nearestJet)/1000 << endl;
+			jetEtaHist->Fill(jet_AntiKt4LCTopo_eta->at(nearestJet));
+			jetPhiHist->Fill(jet_AntiKt4LCTopo_phi->at(nearestJet));
 		}
-		angDiffHist->Fill(minDeltaR);
 	}
     }
 
    return kTRUE;
+}
+
+size_t FirstPlot::GetNearestJet(float hvEta, float hvPhi, vector<float> *jetEta, vector<float> *jetPhi)
+{
+	float minDeltaR = 1000;
+	int minIndex = 0;
+  	for (size_t j = 0; j < jetEta->size(); j++) 
+	{
+		float jetEta = jet_AntiKt4LCTopo_eta->at(j);
+		float jetPhi = jet_AntiKt4LCTopo_phi->at(j);
+		float deltaPhi = TVector2::Phi_mpi_pi(hvPhi-jetPhi);
+		float deltaEta = hvEta-jetEta;
+		float deltaR = deltaPhi*deltaPhi + deltaEta*deltaEta;
+		if (deltaR < minDeltaR) 
+		{
+			minIndex = j;
+			minDeltaR = deltaR;
+		}
+	}
+	return minIndex;
 }
 
 void FirstPlot::SlaveTerminate()
@@ -142,6 +161,9 @@ void FirstPlot::Terminate()
    etaHist->Write();
    phiHist->Write();
    angDiffHist->Write();
+   jetEtaHist->Write();
+   jetptHist->Write();
+   jetPhiHist->Write();
    f->Write();
    f->Close();
 }
