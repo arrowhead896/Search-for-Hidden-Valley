@@ -30,6 +30,9 @@ public :
    TH1F *etaHist;
    TH1F *phiHist;
    TH1F *angDiffHist;
+   TH1F *jetptHist;
+   TH1F *jetEtaHist;
+   TH1F *jetPhiHist;
 
    // Declaration of leaf types
 
@@ -78,6 +81,7 @@ public :
    virtual void    Init(TTree *tree);
    virtual Bool_t  Notify();
    virtual Bool_t  Process(Long64_t entry);
+   virtual size_t  GetNearestJet(float hvEta, float hvPhi, vector<float> *jetEta, vector<float> *jetPhi);
    virtual Int_t   GetEntry(Long64_t entry, Int_t getall = 0) { return fChain ? fChain->GetTree()->GetEntry(entry, getall) : 0; }
    virtual void    SetOption(const char *option) { fOption = option; }
    virtual void    SetObject(TObject *obj) { fObject = obj; }
@@ -137,6 +141,7 @@ void FirstPlot::Init(TTree *tree)
    fChain->SetBranchAddress("mc_vx_x", &mc_vx_x, &b_mc_vx_x);
    fChain->SetBranchAddress("mc_vx_y", &mc_vx_y, &b_mc_vx_y);
    fChain->SetBranchAddress("mc_child_index", &mc_child_index, &b_mc_child_index);
+   fChain->SetBranchStatus("jet_AntiKt4LCTopo_pt", true);
    fChain->SetBranchAddress("jet_AntiKt4LCTopo_pt", &jet_AntiKt4LCTopo_pt, &b_jet_AntiKt4LCTopo_pt);
    fChain->SetBranchStatus("jet_AntiKt4LCTopo_eta", true);
    fChain->SetBranchAddress("jet_AntiKt4LCTopo_eta", &jet_AntiKt4LCTopo_eta, &b_jet_AntiKt4LCTopo_eta);
