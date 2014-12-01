@@ -137,9 +137,9 @@ void ChainPlot::Init(TTree *tree)
    fChain->SetBranchAddress("mc_vx_x", &mc_vx_x, &b_mc_vx_x);
    fChain->SetBranchStatus("mc_vx_y", true);
    fChain->SetBranchAddress("mc_vx_y", &mc_vx_y, &b_mc_vx_y);
-   //fChain->SetBranchStatus("mc_child_index", true);
+   fChain->SetBranchStatus("mc_child_index*", true);
    fChain->SetBranchAddress("mc_child_index", &mc_child_index, &b_mc_child_index);
-   //fChain->SetBranchStatus("jet_AntiKt4LCTopo_pt", true);
+   fChain->SetBranchStatus("jet_AntiKt4LCTopo_pt", true);
    fChain->SetBranchAddress("jet_AntiKt4LCTopo_pt", &jet_AntiKt4LCTopo_pt, &b_jet_AntiKt4LCTopo_pt);
    fChain->SetBranchStatus("jet_AntiKt4LCTopo_eta", true);
    fChain->SetBranchAddress("jet_AntiKt4LCTopo_eta", &jet_AntiKt4LCTopo_eta, &b_jet_AntiKt4LCTopo_eta);
