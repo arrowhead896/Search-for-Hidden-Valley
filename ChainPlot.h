@@ -137,6 +137,8 @@ void ChainPlot::Init(TTree *tree)
    fChain->SetBranchAddress("mc_vx_x", &mc_vx_x, &b_mc_vx_x);
    fChain->SetBranchStatus("mc_vx_y", true);
    fChain->SetBranchAddress("mc_vx_y", &mc_vx_y, &b_mc_vx_y);
+   //if this next line is commented, the code works up to the point that I try to access mc_child_index
+   //as is, it will fail as soon as the GetEntry method is called
    fChain->SetBranchStatus("mc_child_index*", true);
    fChain->SetBranchAddress("mc_child_index", &mc_child_index, &b_mc_child_index);
    fChain->SetBranchStatus("jet_AntiKt4LCTopo_pt", true);
