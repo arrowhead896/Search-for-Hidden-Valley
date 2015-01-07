@@ -88,7 +88,7 @@ Bool_t ChainPlot::Process(Long64_t entry)
   for (size_t i = 0; i < mc_pdgId->size(); i++)
     {
 	//check if it's a HV pion
-	if (mc_pdgId->at(i) == 36)
+	if (mc_pdgId->at(i) == 36 && jet_AntiKt4LCTopo_eta->size() != 0)
 	{
 		cout << "Got pion" << endl;
 		float hvEta = mc_eta->at(i);
@@ -96,7 +96,7 @@ Bool_t ChainPlot::Process(Long64_t entry)
 		float hvPhi = mc_phi->at(i);
 		cout << "Got mcPhi" << endl;
 		size_t nearestJet = GetNearestJet(hvEta, hvPhi, jet_AntiKt4LCTopo_eta, jet_AntiKt4LCTopo_phi);
-		cout << "Got jet index" << endl;
+		cout << "Got jet index: " << nearestJet << endl;
 		float jetEta = jet_AntiKt4LCTopo_eta->at(nearestJet);
 		cout << "Got jetEta" << endl;
 		float jetPhi = jet_AntiKt4LCTopo_phi->at(nearestJet);
@@ -110,9 +110,9 @@ Bool_t ChainPlot::Process(Long64_t entry)
 		float starty = mc_vx_y->at(i);
 		cout << "Got starty" << endl;
 		float endx = mc_vx_x->at(mc_child_index->at(i).at(0));
-		cout << "Got endx" << endl;
+		cout << "Got endx: " << endx << endl;
 		float endy = mc_vx_y->at(mc_child_index->at(i).at(0));
-		cout << "Got endy" << endl;
+		cout << "Got endy: " << endy << endl;
 		float distance = sqrt((endx-startx)*(endx-startx) + (endy-starty)*(endy-starty))/1000.0;
 		noAssocJetHist->Fill(distance, deltaR);
 		cout << "Done with pion" << endl;
@@ -128,10 +128,10 @@ size_t ChainPlot::GetNearestJet(float hvEta, float hvPhi, vector<float> *jetEta,
 	int minIndex = 0;
   	for (size_t j = 0; j < jetEta->size(); j++) 
 	{
-		float jetEta = jet_AntiKt4LCTopo_eta->at(j);
-		float jetPhi = jet_AntiKt4LCTopo_phi->at(j);
-		float deltaPhi = TVector2::Phi_mpi_pi(hvPhi-jetPhi);
-		float deltaEta = hvEta-jetEta;
+		float jetEtaValue = jetEta->at(j);
+		float jetPhiValue = jetPhi->at(j);
+		float deltaPhi = TVector2::Phi_mpi_pi(hvPhi-jetPhiValue);
+		float deltaEta = hvEta-jetEtaValue;
 		float deltaR = deltaPhi*deltaPhi + deltaEta*deltaEta;
 		if (deltaR < minDeltaR) 
 		{
