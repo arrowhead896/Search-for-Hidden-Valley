@@ -100,7 +100,7 @@ Bool_t ChainPlot::Process(Long64_t entry)
   cout << "Looking at particles" << endl;
   for (size_t i = 0; i < mc_pdgId->size(); i++) {
 	if (mc_child_index->at(i).size() != 0 && jet_AntiKt4LCTopo_eta->size() != 0) {
-		if (mc_pdgId->at(i) == 36 && jet_AntiKt4LCTopo_eta->size() != 0 {
+		if (mc_pdgId->at(i) == 36 && jet_AntiKt4LCTopo_eta->size() != 0) {
 			float startx = mc_vx_x->at(i);
 			cout << "Got startx" << endl;
 			float starty = mc_vx_y->at(i);
