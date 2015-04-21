@@ -40,8 +40,21 @@ void ChainPlot::Begin(TTree * /*tree*/)
    // The tree argument is deprecated (on PROOF 0 is passed).
 
    TString option = GetOption();
-   noAssocJetHist = new TH2F("jet", "#Delta r against decay length; decay length [m]; #delta r", 50, 0.0, 20.0, 100, 0.0, 4.0);
-
+   noAssocJetHist = new TH2F("jet", "#Delta r against decay length; decay length [m]; #Delta r", 50, 5, 20.0, 100, 0.0, 4.0);
+   deltaRHist = new TH1F("deltaR", "#Delta r; #Delta r;", 100, 0, 4.0);
+   ptHist = new TH2F("p_{T}", "p_{T} of vpion against decay length; decay length [m]; #p_{T} [GeV]", 50, 5, 50.0, 100, 0, 1000);
+   etaHist = new TH2F("#eta", "#eta of vpion against decay length; decay length [m]; #eta", 50, 5, 50.0, 100, 0.0, 4.0);
+   phiHist = new TH2F("#phi", "#phi of vpion against decay length; decay length [m]; #phi", 50, 5, 50.0, 100, 0.0, 4.0);
+   jetptBHist = new TH1F("jet p_{T} before", "p_{T} of nearest jet (before cut); #p_{T} [GeV]", 100, 0, 1000);
+   jetptAHist = new TH1F("jet p_{T} after", "p_{T} of nearest jet (after cut); #p_{T} [GeV]", 100, 0, 1000);
+   jetptHist = new TH2F("p_{T} of jet", "p_{T} of nearest jet against decay length; decay length [m]; #p_{T} [GeV]", 50, 5, 50.0, 100, 0, 1000);
+   jetetaHist = new TH2F("#eta of jet", "#eta of nearest jet against decay length; decay length [m]; #eta", 50, 5, 50.0, 100, 0.0, 4.0);
+   jetphiHist = new TH2F("#phi of jet", "#phi of nearest jet against decay length; decay length [m]; #phi", 50, 5, 50.0, 100, 0.0, 4.0);
+   calRatioHist = new TH1F("calRatio", "calRatio; calRatio", 100, 0, 5);
+   calRatioInCalHist = new TH1F("calRatioInCalHist", "calRatio associated with decays in calorimeter; calRatio", 50, 0, 5);
+   calRatioBeforeCalHist = new TH1F("calRatioBeforeCalHist", "calRatio associated with decays before calorimeter; calRatio", 100, 0, 5);
+   calRatioAfterCalHist = new TH1F("calRatioAfterCalHist", "calRatio associated with decays after calorimeter; calRatio", 100, 0, 5);
+   calRatioVsDecayLengthHist = new TH2F("calRatioVsDecayLengthHist", "calRatio against decay length; decay length [m]; calRatio", 100, 0, 20.0, 100, 0, 5);
 }
 
 void ChainPlot::SlaveBegin(TTree * /*tree*/)
@@ -85,37 +98,73 @@ Bool_t ChainPlot::Process(Long64_t entry)
   }
   b->GetEntry(entry);
   cout << "Looking at particles" << endl;
-  for (size_t i = 0; i < mc_pdgId->size(); i++)
-    {
-	//check if it's a HV pion
-	if (mc_pdgId->at(i) == 36 && jet_AntiKt4LCTopo_eta->size() != 0)
-	{
-		cout << "Got pion" << endl;
-		float hvEta = mc_eta->at(i);
-		cout << "Got mcEta" << endl;
-		float hvPhi = mc_phi->at(i);
-		cout << "Got mcPhi" << endl;
-		size_t nearestJet = GetNearestJet(hvEta, hvPhi, jet_AntiKt4LCTopo_eta, jet_AntiKt4LCTopo_phi);
-		cout << "Got jet index: " << nearestJet << endl;
-		float jetEta = jet_AntiKt4LCTopo_eta->at(nearestJet);
-		cout << "Got jetEta" << endl;
-		float jetPhi = jet_AntiKt4LCTopo_phi->at(nearestJet);
-		cout << "Got jetPhi" << endl;
-		float deltaPhi = TVector2::Phi_mpi_pi(hvPhi-jetPhi);
-		float deltaEta = hvEta-jetEta;
-		float deltaR = sqrt(deltaPhi*deltaPhi + deltaEta*deltaEta);
-		cout << "Got deltaR" << endl;
-		float startx = mc_vx_x->at(i);
-		cout << "Got startx" << endl;
-		float starty = mc_vx_y->at(i);
-		cout << "Got starty" << endl;
-		float endx = mc_vx_x->at(mc_child_index->at(i).at(0));
-		cout << "Got endx: " << endx << endl;
-		float endy = mc_vx_y->at(mc_child_index->at(i).at(0));
-		cout << "Got endy: " << endy << endl;
-		float distance = sqrt((endx-startx)*(endx-startx) + (endy-starty)*(endy-starty))/1000.0;
-		noAssocJetHist->Fill(distance, deltaR);
-		cout << "Done with pion" << endl;
+  for (size_t i = 0; i < mc_pdgId->size(); i++) {
+	if (mc_child_index->at(i).size() != 0 && jet_AntiKt4LCTopo_eta->size() != 0) {
+		if (mc_pdgId->at(i) == 36 && jet_AntiKt4LCTopo_eta->size() != 0 {
+			float startx = mc_vx_x->at(i);
+			cout << "Got startx" << endl;
+			float starty = mc_vx_y->at(i);
+			cout << "Got starty" << endl;
+			float endx = mc_vx_x->at(mc_child_index->at(i).at(0));
+			cout << "Got endx: " << endx << endl;
+			float endy = mc_vx_y->at(mc_child_index->at(i).at(0));
+			cout << "Got endy: " << endy << endl;
+			float distance = sqrt((endx-startx)*(endx-startx) + (endy-starty)*(endy-starty))/1000.0;
+			cout << "Got pion" << endl;
+			float hvEta = mc_eta->at(i);
+			cout << "Got mcEta" << endl;
+			float hvPhi = mc_phi->at(i);
+			cout << "Got mcPhi" << endl;
+			size_t nearestJet = GetNearestJet(hvEta, hvPhi, jet_AntiKt4LCTopo_eta, jet_AntiKt4LCTopo_phi);
+			cout << "Got jet index: " << nearestJet << endl;
+			float jetEta = jet_AntiKt4LCTopo_eta->at(nearestJet);
+			cout << "Got jetEta" << endl;
+			float jetPhi = jet_AntiKt4LCTopo_phi->at(nearestJet);
+			cout << "Got jetPhi" << endl;
+			float deltaPhi = TVector2::Phi_mpi_pi(hvPhi-jetPhi);
+			float deltaEta = hvEta-jetEta;
+			float deltaR = sqrt(deltaPhi*deltaPhi + deltaEta*deltaEta);
+			float jetpt = (jet_AntiKt4LCTopo_pt->at(nearestJet))/1000;
+			cout << "Got deltaR" << endl;
+			//check to see if deltaR is within the cut
+			jetptBHist->Fill(jetpt);
+			if (deltaR < 0.3)
+			{
+				float emfrac = jet_AntiKt4LCTopo_emfrac->at(nearestJet);
+				float energy = jet_AntiKt4LCTopo_E->at(nearestJet);
+				float emEnergy = emfrac*energy;
+				float hadEnergy = (1-emfrac)*energy;
+				float calRatio = log10(emEnergy/hadEnergy);
+				calRatioHist->Fill(calRatio);
+				if (distance > 2.0 && distance < 3.27)
+				{
+					calRatioInCalHist->Fill(calRatio);
+					cout << "In calorimeter" << endl;
+				}
+				else if (distance <= 2.0)
+				{
+					calRatioBeforeCalHist->Fill(calRatio);
+					cout << "Before calorimeter" << endl;
+				}	
+			else
+			{
+				calRatioAfterCalHist->Fill(calRatio);
+				cout << "After calorimeter" << endl;
+			}
+			calRatioVsDecayLengthHist->Fill(distance, calRatio);
+						noAssocJetHist->Fill(distance, deltaR);
+						deltaRHist->Fill(deltaR);
+						ptHist->Fill(distance,(mc_pt->at(i))/1000);
+		   				etaHist->Fill(distance, hvEta);
+		  				phiHist->Fill(distance, hvPhi);   
+						jetptHist->Fill(distance, jetpt);
+		   				jetetaHist->Fill(distance, jetEta);
+						jetphiHist->Fill(distance, jetPhi);
+				jetptAHist->Fill(jetpt);
+			}
+				cout << "Done with pion" << endl;
+		}
+
 	}
     }
 
@@ -155,9 +204,23 @@ void ChainPlot::Terminate()
    // The Terminate() function is the last function to be called during
    // a query. It always runs on the client, it can be used to present
    // the results graphically or save the results to file.
-
+   cout << "Done processing";
    TFile *f = new TFile("chainplot.root", "RECREATE");
    noAssocJetHist->Write();
+   deltaRHist->Write();
+   ptHist->Write();
+   etaHist->Write();
+   phiHist->Write(); 
+   jetptBHist->Write();
+   jetptAHist->Write();
+   jetptHist->Write();
+   jetetaHist->Write();
+   jetphiHist->Write();
+   calRatioHist->Write();
+   calRatioInCalHist->Write();
+   calRatioBeforeCalHist->Write();
+   calRatioAfterCalHist->Write();
+   calRatioVsDecayLengthHist->Write();
    f->Write();
    f->Close();
 }
