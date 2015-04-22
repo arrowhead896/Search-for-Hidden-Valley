@@ -50,11 +50,11 @@ void ChainPlot::Begin(TTree * /*tree*/)
    jetptHist = new TH2F("p_{T} of jet", "p_{T} of nearest jet against decay length; decay length [m]; #p_{T} [GeV]", 50, 5, 50.0, 100, 0, 1000);
    jetetaHist = new TH2F("#eta of jet", "#eta of nearest jet against decay length; decay length [m]; #eta", 50, 5, 50.0, 100, 0.0, 4.0);
    jetphiHist = new TH2F("#phi of jet", "#phi of nearest jet against decay length; decay length [m]; #phi", 50, 5, 50.0, 100, 0.0, 4.0);
-   calRatioHist = new TH1F("calRatio", "calRatio; calRatio", 100, 0, 5);
-   calRatioInCalHist = new TH1F("calRatioInCalHist", "calRatio associated with decays in calorimeter; calRatio", 50, 0, 5);
-   calRatioBeforeCalHist = new TH1F("calRatioBeforeCalHist", "calRatio associated with decays before calorimeter; calRatio", 100, 0, 5);
-   calRatioAfterCalHist = new TH1F("calRatioAfterCalHist", "calRatio associated with decays after calorimeter; calRatio", 100, 0, 5);
-   calRatioVsDecayLengthHist = new TH2F("calRatioVsDecayLengthHist", "calRatio against decay length; decay length [m]; calRatio", 100, 0, 20.0, 100, 0, 5);
+   calRatioHist = new TH1F("calRatio", "calRatio; calRatio", 100, -3, 5);
+   calRatioInCalHist = new TH1F("calRatioInCalHist", "calRatio associated with decays in calorimeter; calRatio", 50, -3, 5);
+   calRatioBeforeCalHist = new TH1F("calRatioBeforeCalHist", "calRatio associated with decays before calorimeter; calRatio", 100, -3, 5);
+   calRatioAfterCalHist = new TH1F("calRatioAfterCalHist", "calRatio associated with decays after calorimeter; calRatio", 100, -3, 5);
+   calRatioVsDecayLengthHist = new TH2F("calRatioVsDecayLengthHist", "calRatio against decay length; decay length [m]; calRatio", 100, 0, 20.0, 100, -3, 5);
 }
 
 void ChainPlot::SlaveBegin(TTree * /*tree*/)
@@ -98,9 +98,11 @@ Bool_t ChainPlot::Process(Long64_t entry)
   }
   b->GetEntry(entry);
   cout << "Looking at particles" << endl;
-  for (size_t i = 0; i < mc_pdgId->size(); i++) {
+  for (size_t i = 0; i < mc_pdgId->size(); i++)
+    {
 	if (mc_child_index->at(i).size() != 0 && jet_AntiKt4LCTopo_eta->size() != 0) {
-		if (mc_pdgId->at(i) == 36 && jet_AntiKt4LCTopo_eta->size() != 0) {
+		if (mc_pdgId->at(i) == 36 && jet_AntiKt4LCTopo_eta->size() != 0)
+		{
 			float startx = mc_vx_x->at(i);
 			cout << "Got startx" << endl;
 			float starty = mc_vx_y->at(i);
@@ -128,43 +130,48 @@ Bool_t ChainPlot::Process(Long64_t entry)
 			cout << "Got deltaR" << endl;
 			//check to see if deltaR is within the cut
 			jetptBHist->Fill(jetpt);
-			if (deltaR < 0.3)
-			{
+			if (deltaR < 0.3) {
 				float emfrac = jet_AntiKt4LCTopo_emfrac->at(nearestJet);
 				float energy = jet_AntiKt4LCTopo_E->at(nearestJet);
 				float emEnergy = emfrac*energy;
 				float hadEnergy = (1-emfrac)*energy;
-				float calRatio = log10(emEnergy/hadEnergy);
+				float calRatio = 0;
+				if (emEnergy == 0 && hadEnergy ==0) {
+					cout << "Is this really a jet?" << endl;
+					calRatio = 0;
+				} else if (emEnergy == 0 && hadEnergy != 0) {
+					cout << "Giant calRatio" << endl;
+					calRatio = 20;
+				} else {
+					calRatio = log10(hadEnergy/emEnergy);
+				}
 				calRatioHist->Fill(calRatio);
-				if (distance > 2.0 && distance < 3.27)
-				{
+				if (distance > 2.0 && distance < 3.27) {
 					calRatioInCalHist->Fill(calRatio);
 					cout << "In calorimeter" << endl;
 				}
-				else if (distance <= 2.0)
-				{
+				else if (distance <= 2.0) {
 					calRatioBeforeCalHist->Fill(calRatio);
 					cout << "Before calorimeter" << endl;
-				}	
-			else
-			{
-				calRatioAfterCalHist->Fill(calRatio);
-				cout << "After calorimeter" << endl;
-			}
-			calRatioVsDecayLengthHist->Fill(distance, calRatio);
-						noAssocJetHist->Fill(distance, deltaR);
-						deltaRHist->Fill(deltaR);
-						ptHist->Fill(distance,(mc_pt->at(i))/1000);
-		   				etaHist->Fill(distance, hvEta);
-		  				phiHist->Fill(distance, hvPhi);   
-						jetptHist->Fill(distance, jetpt);
-		   				jetetaHist->Fill(distance, jetEta);
-						jetphiHist->Fill(distance, jetPhi);
+				}
+				else
+				{
+					calRatioAfterCalHist->Fill(calRatio);
+					cout << "After calorimeter" << endl;
+				}
+				calRatioVsDecayLengthHist->Fill(distance, calRatio);
+				noAssocJetHist->Fill(distance, deltaR);
+				deltaRHist->Fill(deltaR);
+				ptHist->Fill(distance,(mc_pt->at(i))/1000);
+				etaHist->Fill(distance, hvEta);
+				phiHist->Fill(distance, hvPhi);   
+				jetptHist->Fill(distance, jetpt);
+				jetetaHist->Fill(distance, jetEta);
+				jetphiHist->Fill(distance, jetPhi);
 				jetptAHist->Fill(jetpt);
 			}
-				cout << "Done with pion" << endl;
+			cout << "Done with pion" << endl;
 		}
-
 	}
     }
 
