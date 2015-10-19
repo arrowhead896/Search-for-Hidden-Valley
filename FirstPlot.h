@@ -17,7 +17,7 @@
 // Header file for the classes stored in the TTree if any.
 #include "vector"
 
-#ifdef __CINT__
+#ifdef __CINT__ 
 
 #pragma link C++ class vector<vector<int> >+;
 
@@ -33,10 +33,11 @@ public :
    TH1F *jetptHist;
    TH1F *jetEtaHist;
    TH1F *jetPhiHist;
+   TH1F  *missingpTHist;
 
    // Declaration of leaf types
 
-   vector<float>   *jet_AntiKt4LCTopo_flavor_weight_MV1;
+   /*vector<float>   *jet_AntiKt4LCTopo_flavor_weight_MV1;
    vector<float>   *mc_pt;
    vector<float>   *mc_eta;
    vector<float>   *mc_phi;
@@ -52,10 +53,11 @@ public :
    vector<float>   *trk_pt;
    vector<float>   *trk_eta;
    vector<float>   *trk_phi_wrtPV;
-   vector<float>   *trk_cov_d0_wrtPV;
+   vector<float>   *trk_cov_d0_wrtPV;*/
+   Float_t          MET_MuonMuons_et;
    
    //List of branches
-   TBranch   *b_jet_AntiKt4LCTopo_flavor_weight_MV1;
+   /* TBranch   *b_jet_AntiKt4LCTopo_flavor_weight_MV1;
    TBranch   *b_mc_pt;
    TBranch   *b_mc_eta;
    TBranch   *b_mc_phi;
@@ -71,7 +73,8 @@ public :
    TBranch   *b_trk_pt;
    TBranch   *b_trk_eta;
    TBranch   *b_trk_phi_wrtPV;
-   TBranch   *b_trk_cov_d0_wrtPV;
+   TBranch   *b_trk_cov_d0_wrtPV;*/
+   TBranch   *b_MET_MuonMuons_et;
    
    FirstPlot(TTree * /*tree*/ =0) : fChain(0) { }
    virtual ~FirstPlot() { }
@@ -99,7 +102,7 @@ public :
 void FirstPlot::Init(TTree *tree)
 {
    //setting object pointers
-   jet_AntiKt4LCTopo_flavor_weight_MV1 = 0;
+   /*jet_AntiKt4LCTopo_flavor_weight_MV1 = 0;
    mc_pt = 0;
    mc_eta = 0;
    mc_phi = 0;
@@ -115,7 +118,8 @@ void FirstPlot::Init(TTree *tree)
    trk_pt = 0;
    trk_eta = 0;
    trk_phi_wrtPV = 0;
-   trk_cov_d0_wrtPV = 0;
+   trk_cov_d0_wrtPV = 0;*/
+   MET_MuonMuons_et = 0;
    
    //setting branch addresses
    if (!tree) return;
@@ -124,7 +128,7 @@ void FirstPlot::Init(TTree *tree)
    
    fChain->SetBranchStatus("*", false);
 
-   fChain->SetBranchAddress("jet_AntiKt4LCTopo_flavor_weight_MV1", &jet_AntiKt4LCTopo_flavor_weight_MV1, &b_jet_AntiKt4LCTopo_flavor_weight_MV1);
+   /*fChain->SetBranchAddress("jet_AntiKt4LCTopo_flavor_weight_MV1", &jet_AntiKt4LCTopo_flavor_weight_MV1, &b_jet_AntiKt4LCTopo_flavor_weight_MV1);
 
    fChain->SetBranchStatus("mc_pt", true);
    fChain->SetBranchAddress("mc_pt", &mc_pt, &b_mc_pt);
@@ -153,6 +157,10 @@ void FirstPlot::Init(TTree *tree)
    fChain->SetBranchAddress("trk_eta", &trk_eta, &b_trk_eta);
    fChain->SetBranchAddress("trk_phi_wrtPV", &trk_phi_wrtPV, &b_trk_phi_wrtPV);
    fChain->SetBranchAddress("trk_cov_d0_wrtPV", &trk_cov_d0_wrtPV, &b_trk_cov_d0_wrtPV);
+   */
+
+   fChain->SetBranchStatus("MET_MuonMuons_et", true);
+   fChain->SetBranchAddress("MET_MuonMuons_et", &MET_MuonMuons_et, &b_MET_MuonMuons_et); 
 }
 Bool_t FirstPlot::Notify()
 {
