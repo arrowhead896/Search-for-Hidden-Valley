@@ -39,6 +39,7 @@ class ChainPlot : public TSelector {
   TH1F	*jetptHist;
   TH1F	*jetetaHist;
   TH1F	*jetphiHist;
+  TH1F  *distHist;
   TH1F  *calRatioHist;
   TH1F  *calRatioInCalHist;
   TH1F  *calRatioBeforeCalHist;

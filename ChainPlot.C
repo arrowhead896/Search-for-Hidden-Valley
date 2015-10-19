@@ -44,6 +44,7 @@ void ChainPlot::Begin(TTree * /*tree*/)
   deltaRHist = new TH1F("deltaR", "#Delta r; #Delta r;", 100, 0, 4.0);
   ptHist = new TH1F("p_{T}", "p_{T} of vpion; #p_{T} [GeV]", 100, 0, 1000);
   etaHist = new TH1F("#eta", "#eta of vpion; #eta", 100, 0.0, 4.0);
+  distHist = new TH1F("distance", "decay length of vPion; decay length [m]", 100, 0, 6);
   phiHist = new TH1F("#phi", "#phi of vpion against decay length; decay length [m]; #phi", 100, 0.0, 4.0);
   jetptBHist = new TH1F("jet p_{T} before", "p_{T} of nearest jet (before cut); #p_{T} [GeV]", 100, 0, 1000);
   jetptAHist = new TH1F("jet p_{T} after", "p_{T} of nearest jet (after cut); #p_{T} [GeV]", 100, 0, 1000);
@@ -105,6 +106,7 @@ Bool_t ChainPlot::Process(Long64_t entry)
   bool leptonValid = false;
   bool calRatioValid = false;
   bool distanceValid = false;
+  float pionDistance = 0;
   for (size_t i = 0; i < mc_pdgId->size(); i++) {
     int pdgId = mc_pdgId->at(i);
     if (pdgId == -11 || pdgId == -13) {
@@ -167,13 +169,16 @@ Bool_t ChainPlot::Process(Long64_t entry)
 	    distanceValid = true;
 	    cout << "In calorimeter" << endl;
 	  }
-	  else if (distance <= 2.0) {
-	    calRatioBeforeCalHist->Fill(calRatio);
-	    cout << "Before calorimeter" << endl;
-	  }
 	  else {
-	    calRatioAfterCalHist->Fill(calRatio);
-	    cout << "After calorimeter" << endl;
+	    distHist->Fill(distance);
+	    if (distance <= 2.0) {
+	      calRatioBeforeCalHist->Fill(calRatio);
+	      cout << "Before calorimeter" << endl;
+	    }
+	    else {
+	      calRatioAfterCalHist->Fill(calRatio);
+	      cout << "After calorimeter" << endl;
+	    }
 	  }
 	  if (calRatio > 1) {
 	    calRatioValid = true;
@@ -270,6 +275,7 @@ void ChainPlot::Terminate()
   deltaRHist->Write();
   ptHist->Write();
   etaHist->Write();
+  distHist->Write();
   phiHist->Write(); 
   jetptBHist->Write();
   jetptAHist->Write();
