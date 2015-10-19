@@ -106,7 +106,7 @@ Bool_t ChainPlot::Process(Long64_t entry)
   bool leptonValid = false;
   bool calRatioValid = false;
   bool distanceValid = false;
-  float pionDistance = 0;
+  vector<float>* pionDistance = new vector<float>();
   for (size_t i = 0; i < mc_pdgId->size(); i++) {
     int pdgId = mc_pdgId->at(i);
     if (pdgId == -11 || pdgId == -13) {
@@ -170,7 +170,6 @@ Bool_t ChainPlot::Process(Long64_t entry)
 	    cout << "In calorimeter" << endl;
 	  }
 	  else {
-	    distHist->Fill(distance);
 	    if (distance <= 2.0) {
 	      calRatioBeforeCalHist->Fill(calRatio);
 	      cout << "Before calorimeter" << endl;
@@ -181,7 +180,10 @@ Bool_t ChainPlot::Process(Long64_t entry)
 	    }
 	  }
 	  if (calRatio > 1) {
+	    pionDistance->push_back(distance);
 	    calRatioValid = true;
+	  } else {
+
 	  }
 	  calRatioVsDecayLengthHist->Fill(distance, calRatio);
 	  noAssocJetHist->Fill(distance, deltaR);
@@ -206,6 +208,12 @@ Bool_t ChainPlot::Process(Long64_t entry)
       if (calRatioValid) {
 	cout << "passed calRatio cut" << endl;
 	passedCalRatioCut++;
+	if (!distanceValid) {
+	  for (size_t i = 0; i < pionDistance->size(); i++) {
+	    distHist->Fill(pionDistance->at(i));
+	    cout << "3000" << endl;
+	  }
+	}
       }
     }
   } 
