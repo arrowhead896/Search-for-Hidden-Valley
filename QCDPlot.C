@@ -42,10 +42,10 @@ void QCDPlot::Begin(TTree * /*tree*/)
   TString option = GetOption();
   //  noAssocJetHist = new TH2F("jet", "#Delta r against decay length; decay length [m]; #Delta r", 50, 5, 20.0, 100, 0.0, 4.0);
   // deltaRHist = new TH1F("deltaR", "#Delta r; #Delta r;", 100, 0, 4.0);
-  ptHist = new TH1F("p_{T}", "p_{T}; #p_{T} [GeV]", 100, 0, 1000);
-  etaHist = new TH1F("#eta", "#eta; #eta", 100, 0.0, 4.0);
+  //ptHist = new TH1F("p_{T}", "p_{T}; #p_{T} [GeV]", 100, 0, 1000);
+  //etaHist = new TH1F("#eta", "#eta; #eta", 100, 0.0, 4.0);
   //  distHist = new TH1F("distance", "decay length of vPion; decay length [m]", 100, 0, 6);
-  phiHist = new TH1F("#phi", "#phi; #phi", 100, 0.0, 4.0);
+  //phiHist = new TH1F("#phi", "#phi; #phi", 100, 0.0, 4.0);
   //jetptBHist = new TH1F("jet p_{T} before", "p_{T} of nearest jet (before cut); #p_{T} [GeV]", 100, 0, 1000);
   //jetptAHist = new TH1F("jet p_{T} after", "p_{T} of nearest jet (after cut); #p_{T} [GeV]", 100, 0, 1000);
   //jetptHist = new TH1F("p_{T} of jet", "p_{T} of nearest jet; #p_{T} [GeV]", 100, 0, 1000);
@@ -61,7 +61,7 @@ void QCDPlot::Begin(TTree * /*tree*/)
   //missingpTHist2 = new TH1F("missingpTHist (sumet)", "missing energy (p_{T} of neutrinos from W decay); #missing E_{T} [GeV]", 100, -1000, 1000);
 }
 
-void QCD::SlaveBegin(TTree * /*tree*/)
+void QCDPlot::SlaveBegin(TTree * /*tree*/)
 {
   // The SlaveBegin() function is called after the Begin() function.
   // When running with PROOF SlaveBegin() is called on each slave server.
@@ -103,9 +103,9 @@ Bool_t QCDPlot::Process(Long64_t entry)
   cout << "Looking at particles" << endl;
   //missingpTHist->Fill(MET_RefFinal_et/1000);
   //missingpTHist2->Fill(MET_RefFinal_sumet/1000);
-  //bool leptonValid = false;
-  //bool calRatioValid = false;
-  //  bool distanceValid = false;
+  bool leptonValid = false;
+  bool calRatioValid = false;
+  bool distanceValid = false;
   //  vector<float>* pionDistance = new vector<float>();
   for (size_t i = 0; i < mc_pdgId->size(); i++) {
     int pdgId = mc_pdgId->at(i);
@@ -115,6 +115,7 @@ Bool_t QCDPlot::Process(Long64_t entry)
 	break;
       }
     }
+  }
   for (size_t i = 0; i < mc_pdgId->size(); i++) { 
     if (mc_child_index->at(i).size() != 0 && jet_AntiKt4LCTopo_eta->size() != 0) {
       int pdgId = mc_pdgId->at(i);
@@ -139,7 +140,7 @@ Bool_t QCDPlot::Process(Long64_t entry)
       //cout << "Got jetEta" << endl;
       float jetPhi = jet_AntiKt4LCTopo_phi->at(nearestJet);
       //cout << "Got jetPhi" << endl;
-      float trackPhi = trk_phi->at(i);
+      //	float trackPhi = trk_phi->at(i);
       float deltaPhi = TVector2::Phi_mpi_pi(hvPhi-jetPhi);
       float deltaEta = hvEta-jetEta;
       float deltaR = sqrt(deltaPhi*deltaPhi + deltaEta*deltaEta);
@@ -150,51 +151,43 @@ Bool_t QCDPlot::Process(Long64_t entry)
       if (deltaR < 0.3) {
 	float emfrac = jet_AntiKt4LCTopo_emfrac->at(nearestJet);
 	float energy = jet_AntiKt4LCTopo_E->at(nearestJet);
-	  float emEnergy = emfrac*energy;
-	  float hadEnergy = (1-emfrac)*energy;
-	  float calRatio = 0;
-	  if (emEnergy == 0 && hadEnergy ==0) {
-	    cout << "Is this really a jet?" << endl;
-	    calRatio = 0;
-	  } else if (emEnergy == 0 && hadEnergy != 0) {
-	    cout << "Giant calRatio" << endl;
-	    calRatio = 20;
-	  } else {
-	    calRatio = log10(hadEnergy/emEnergy);
-	  }
-	  calRatioHist->Fill(calRatio);
-	  if (distance > 2.0 && distance < 3.27) {
-	    calRatioInCalHist->Fill(calRatio);
-	    distanceValid = true;
-	    cout << "In calorimeter" << endl;
+	float emEnergy = emfrac*energy;
+	float hadEnergy = (1-emfrac)*energy;
+	float calRatio = 0;
+	if (emEnergy == 0 && hadEnergy ==0) {
+	  cout << "Is this really a jet?" << endl;
+	  calRatio = 0;
+	} else if (emEnergy == 0 && hadEnergy != 0) {
+	  cout << "Giant calRatio" << endl;
+	  calRatio = 20;
+	} else {
+	  calRatio = log10(hadEnergy/emEnergy);
+	}
+	//calRatioHist->Fill(calRatio);
+	if (distance > 2.0 && distance < 3.27) {
+	  //calRatioInCalHist->Fill(calRatio);
+	  distanceValid = true;
+	  cout << "In calorimeter" << endl;
+	}
+	else {
+	  if (distance <= 2.0) {
+	    //calRatioBeforeCalHist->Fill(calRatio);
+	    cout << "Before calorimeter" << endl;
 	  }
 	  else {
-	    if (distance <= 2.0) {
-	      calRatioBeforeCalHist->Fill(calRatio);
-	      cout << "Before calorimeter" << endl;
-	    }
-	    else {
-	      calRatioAfterCalHist->Fill(calRatio);
-	      cout << "After calorimeter" << endl;
-	    }
+	    //calRatioAfterCalHist->Fill(calRatio);
+	    cout << "After calorimeter" << endl;
 	  }
-	  if (calRatio > 1) {
-	    pionDistance->push_back(distance);
-	    calRatioValid = true;
-	  } else {
-	    
-	  }
-	  calRatioVsDecayLengthHist->Fill(distance, calRatio);
-	  noAssocJetHist->Fill(distance, deltaR);
-	  deltaRHist->Fill(deltaR);
+	    if (calRatio > 1) {
+	      // pionDistance->push_back(distance);
+	      calRatioValid = true;
+	    } 
 	}
-	//cout << "Done with pion" << endl;
-    } else if (pdgId == -11 || pdgId == -13) {
-      //cout << "lepton found" << endl;
-      leptonpTHist->Fill(mc_pt->at(i)/1000);
-    } else if (pdgId == 12 || pdgId == 14) {
-      //cout << "neutrino found" << endl;
-      missingpTHist->Fill(mc_pt->at(i)/1000);
+	//calRatioVsDecayLengthHist->Fill(distance, calRatio);
+	//noAssocJetHist->Fill(distance, deltaR);
+	//deltaRHist->Fill(deltaR);
+	
+      }
     }
   }
   if (leptonValid) {
@@ -206,38 +199,36 @@ Bool_t QCDPlot::Process(Long64_t entry)
       if (calRatioValid) {
 	cout << "passed calRatio cut" << endl;
 	passedCalRatioCut++;
-	if (!distanceValid) {
-	  for (size_t i = 0; i < pionDistance->size(); i++) {
-	    distHist->Fill(pionDistance->at(i));
-	    cout << "3000" << endl;
-	  }
-	}
+	/* if (!distanceValid) {
+	   for (size_t i = 0; i < pionDistance->size(); i++) {
+	   //distHist->Fill(pionDistance->at(i));
+	   cout << "3000" << endl;
+	   }
+	   }*/
       }
     }
-  } 
-  if (distanceValid) {
+  }
+  /*if (distanceValid) {
     dTotal++;
     if (leptonValid) {
-      dLepton++;
-      cout << "passed lepton cuts" << endl;
-      if (MET_RefFinal_et/1000 >= 25) {  
-	dMET++;
-	cout << "passed MET cuts" << endl;
-	if (calRatioValid) {
-	  cout << "passed calRatio cut" << endl;
-	  dCalRatio++;
-	}
-      }
-    } 
-    }*/
+    dLepton++;
+    cout << "passed lepton cuts" << endl;
+    if (MET_RefFinal_et/1000 >= 25) {  
+    dMET++;
+    cout << "passed MET cuts" << endl;
+    if (calRatioValid) {
+    cout << "passed calRatio cut" << endl;
+    dCalRatio++;
+    }
+    }
+    } */
   return kTRUE;
 }
-
-size_t QCDPlot::GetNearestJet(float hvEta, float hvPhi, vector<float> *jetEta, vector<float> *jetPhi)
-{
-  float minDeltaR = 1000;
-  int minIndex = 0;
-  for (size_t j = 0; j < jetEta->size(); j++)  {
+    size_t QCDPlot::GetNearestJet(float hvEta, float hvPhi, vector<float> *jetEta, vector<float> *jetPhi)
+    {
+      float minDeltaR = 1000;
+      int minIndex = 0;
+      for (size_t j = 0; j < jetEta->size(); j++)  {
     float jetEtaValue = jetEta->at(j);
     float jetPhiValue = jetPhi->at(j);
     float deltaPhi = TVector2::Phi_mpi_pi(hvPhi-jetPhiValue);
@@ -268,7 +259,7 @@ void QCDPlot::Terminate()
 
 
   TFile *f = new TFile("qcdplot.root", "RECREATE");
-  noAssocJetHist->Write();
+  /*noAssocJetHist->Write();
   deltaRHist->Write();
   ptHist->Write();
   etaHist->Write();
@@ -286,7 +277,7 @@ void QCDPlot::Terminate()
   calRatioVsDecayLengthHist->Write();
   leptonpTHist->Write();
   missingpTHist->Write();
-  missingpTHist2->Write();
+  missingpTHist2->Write();*/
   f->Write();
   f->Close();
 }
