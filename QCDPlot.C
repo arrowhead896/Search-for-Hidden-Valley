@@ -1,5 +1,5 @@
-#define ChainPlot_cxx
-// The class definition in ChainPlot.h has been generated automatically
+#define QCDPlot_cxx
+// The class definition in QCDPlot.h has been generated automatically
 // by the ROOT utility TTree::MakeSelector(). This class is derived
 // from the ROOT class TSelector. For more information on the TSelector
 // framework see $ROOTSYS/README/README.SELECTOR or the ROOT User Manual.
@@ -18,12 +18,12 @@
 //
 // To use this file, try the following session on your Tree T:
 //
-// Root > T->Process("ChainPlot.C")
-// Root > T->Process("ChainPlot.C","some options")
-// Root > T->Process("ChainPlot.C+")
+// Root > T->Process("QCDPlot.C")
+// Root > T->Process("QCDPlot.C","some options")
+// Root > T->Process("QCDPlot.C+")
 //
 
-#include "ChainPlot.h"
+#include "QCDPlot.h"
 #include <math.h>  
 #include <TH2.h>
 #include <TStyle.h>
@@ -33,35 +33,35 @@
 
 using namespace std;
 
-void ChainPlot::Begin(TTree * /*tree*/)
+void QCDPlot::Begin(TTree * /*tree*/)
 {
   // The Begin() function is called at the start of the query.
   // When running with PROOF Begin() is only called on the client.
   // The tree argument is deprecated (on PROOF 0 is passed).
   
   TString option = GetOption();
-  noAssocJetHist = new TH2F("jet", "#Delta r against decay length; decay length [m]; #Delta r", 50, 5, 20.0, 100, 0.0, 4.0);
-  deltaRHist = new TH1F("deltaR", "#Delta r; #Delta r;", 100, 0, 4.0);
-  ptHist = new TH1F("p_{T}", "p_{T} of vpion; #p_{T} [GeV]", 100, 0, 1000);
-  etaHist = new TH1F("#eta", "#eta of vpion; #eta", 100, 0.0, 4.0);
-  distHist = new TH1F("distance", "decay length of vPion; decay length [m]", 100, 0, 6);
-  phiHist = new TH1F("#phi", "#phi of vpion against decay length; decay length [m]; #phi", 100, 0.0, 4.0);
-  jetptBHist = new TH1F("jet p_{T} before", "p_{T} of nearest jet (before cut); #p_{T} [GeV]", 100, 0, 1000);
-  jetptAHist = new TH1F("jet p_{T} after", "p_{T} of nearest jet (after cut); #p_{T} [GeV]", 100, 0, 1000);
-  jetptHist = new TH1F("p_{T} of jet", "p_{T} of nearest jet; #p_{T} [GeV]", 100, 0, 1000);
-  jetetaHist = new TH1F("#eta of jet", "#eta of nearest jet; #eta", 100, 0.0, 4.0);
-  jetphiHist = new TH1F("#phi of jet", "#phi of nearest jet; #phi", 100, 0.0, 4.0);
-  calRatioHist = new TH1F("calRatio", "calRatio; calRatio", 100, -3, 5);
-  calRatioInCalHist = new TH1F("calRatioInCalHist", "calRatio associated with decays in calorimeter; calRatio", 50, -3, 5);
-  calRatioBeforeCalHist = new TH1F("calRatioBeforeCalHist", "calRatio associated with decays before calorimeter; calRatio", 100, -3, 5);
-  calRatioAfterCalHist = new TH1F("calRatioAfterCalHist", "calRatio associated with decays after calorimeter; calRatio", 100, -3, 5);
-  calRatioVsDecayLengthHist = new TH2F("calRatioVsDecayLengthHist", "calRatio against decay length; decay length [m]; calRatio", 100, 0, 20.0, 100, -3, 5);
-  leptonpTHist = new TH1F("leptonpTHist", "p_{T} of leptons (from the W decay); #p_{T} [GeV]", 100, 0, 1000);
-  missingpTHist = new TH1F("missingpTHist", "missing energy (p_{T} of neutrinos from W decay); #missing E_{T} [GeV]", 100, -1000, 1000);
-  missingpTHist2 = new TH1F("missingpTHist (sumet)", "missing energy (p_{T} of neutrinos from W decay); #missing E_{T} [GeV]", 100, -1000, 1000);
+  //  noAssocJetHist = new TH2F("jet", "#Delta r against decay length; decay length [m]; #Delta r", 50, 5, 20.0, 100, 0.0, 4.0);
+  // deltaRHist = new TH1F("deltaR", "#Delta r; #Delta r;", 100, 0, 4.0);
+  ptHist = new TH1F("p_{T}", "p_{T}; #p_{T} [GeV]", 100, 0, 1000);
+  etaHist = new TH1F("#eta", "#eta; #eta", 100, 0.0, 4.0);
+  //  distHist = new TH1F("distance", "decay length of vPion; decay length [m]", 100, 0, 6);
+  phiHist = new TH1F("#phi", "#phi; #phi", 100, 0.0, 4.0);
+  //jetptBHist = new TH1F("jet p_{T} before", "p_{T} of nearest jet (before cut); #p_{T} [GeV]", 100, 0, 1000);
+  //jetptAHist = new TH1F("jet p_{T} after", "p_{T} of nearest jet (after cut); #p_{T} [GeV]", 100, 0, 1000);
+  //jetptHist = new TH1F("p_{T} of jet", "p_{T} of nearest jet; #p_{T} [GeV]", 100, 0, 1000);
+  //jetetaHist = new TH1F("#eta of jet", "#eta of nearest jet; #eta", 100, 0.0, 4.0);
+  //jetphiHist = new TH1F("#phi of jet", "#phi of nearest jet; #phi", 100, 0.0, 4.0);
+  //calRatioHist = new TH1F("calRatio", "calRatio; calRatio", 100, -3, 5);
+  //calRatioInCalHist = new TH1F("calRatioInCalHist", "calRatio associated with decays in calorimeter; calRatio", 50, -3, 5);
+  //calRatioBeforeCalHist = new TH1F("calRatioBeforeCalHist", "calRatio associated with decays before calorimeter; calRatio", 100, -3, 5);
+  //calRatioAfterCalHist = new TH1F("calRatioAfterCalHist", "calRatio associated with decays after calorimeter; calRatio", 100, -3, 5);
+  //calRatioVsDecayLengthHist = new TH2F("calRatioVsDecayLengthHist", "calRatio against decay length; decay length [m]; calRatio", 100, 0, 20.0, 100, -3, 5);
+  //leptonpTHist = new TH1F("leptonpTHist", "p_{T} of leptons (from the W decay); #p_{T} [GeV]", 100, 0, 1000);
+  //missingpTHist = new TH1F("missingpTHist", "missing energy (p_{T} of neutrinos from W decay); #missing E_{T} [GeV]", 100, -1000, 1000);
+  //missingpTHist2 = new TH1F("missingpTHist (sumet)", "missing energy (p_{T} of neutrinos from W decay); #missing E_{T} [GeV]", 100, -1000, 1000);
 }
 
-void ChainPlot::SlaveBegin(TTree * /*tree*/)
+void QCD::SlaveBegin(TTree * /*tree*/)
 {
   // The SlaveBegin() function is called after the Begin() function.
   // When running with PROOF SlaveBegin() is called on each slave server.
@@ -71,7 +71,7 @@ void ChainPlot::SlaveBegin(TTree * /*tree*/)
   
 }
 
-Bool_t ChainPlot::Process(Long64_t entry)
+Bool_t QCDPlot::Process(Long64_t entry)
 {
   // The Process() function is called for each entry in the tree (or possibly
   // keyed object in the case of PROOF) to be processed. The entry argument
@@ -93,7 +93,7 @@ Bool_t ChainPlot::Process(Long64_t entry)
   // cout << "Looking at entry " << entry << endl;
   GetEntry(entry);
   //cout << "  -> Got entry" << endl;
-  totalEvents++;
+  //totalEvents++;
   TBranch *b = fChain->GetBranch("mc_pdgId");
   if (b == 0)  {
     cout << "  -> Oh, that is very bad. This is boot!" << endl;
@@ -101,12 +101,12 @@ Bool_t ChainPlot::Process(Long64_t entry)
   }
   b->GetEntry(entry);
   cout << "Looking at particles" << endl;
-  missingpTHist->Fill(MET_RefFinal_et/1000);
-  missingpTHist2->Fill(MET_RefFinal_sumet/1000);
-  bool leptonValid = false;
-  bool calRatioValid = false;
-  bool distanceValid = false;
-  vector<float>* pionDistance = new vector<float>();
+  //missingpTHist->Fill(MET_RefFinal_et/1000);
+  //missingpTHist2->Fill(MET_RefFinal_sumet/1000);
+  //bool leptonValid = false;
+  //bool calRatioValid = false;
+  //  bool distanceValid = false;
+  //  vector<float>* pionDistance = new vector<float>();
   for (size_t i = 0; i < mc_pdgId->size(); i++) {
     int pdgId = mc_pdgId->at(i);
     if (pdgId == -11 || pdgId == -13) {
@@ -115,45 +115,41 @@ Bool_t ChainPlot::Process(Long64_t entry)
 	break;
       }
     }
-  }
   for (size_t i = 0; i < mc_pdgId->size(); i++) { 
     if (mc_child_index->at(i).size() != 0 && jet_AntiKt4LCTopo_eta->size() != 0) {
       int pdgId = mc_pdgId->at(i);
-      if (pdgId == 36) {
-	cout << "next pion" << endl;
-	float startx = mc_vx_x->at(i);
-	//cout << "Got startx" << endl;
-	float starty = mc_vx_y->at(i);
-	//cout << "Got starty" << endl;
-	float endx = mc_vx_x->at(mc_child_index->at(i).at(0));
-	//cout << "Got endx: " << endx << endl;
-	float endy = mc_vx_y->at(mc_child_index->at(i).at(0));
-	//cout << "Got endy: " << endy << endl;
-	float distance = sqrt((endx-startx)*(endx-startx) + (endy-starty)*(endy-starty))/1000.0;
-	//cout << "Got pion" << endl;
-	float hvEta = mc_eta->at(i);
-	//cout << "Got mcEta" << endl;
-	float hvPhi = mc_phi->at(i);
-	//cout << "Got mcPhi" << endl;
-	size_t nearestJet = GetNearestJet(hvEta, hvPhi, jet_AntiKt4LCTopo_eta, jet_AntiKt4LCTopo_phi);
-	//cout << "Got jet index: " << nearestJet << endl;
-	float jetEta = jet_AntiKt4LCTopo_eta->at(nearestJet);
-	//cout << "Got jetEta" << endl;
-	float jetPhi = jet_AntiKt4LCTopo_phi->at(nearestJet);
-	//cout << "Got jetPhi" << endl;
-	float trkPhi = trk_phi_wrtPV->at(i);
-	float trkEta = trk_eta->at(i);
-	float trkPT = trk_pt->at(i);
-	float deltaPhi = TVector2::Phi_mpi_pi(hvPhi-jetPhi);
-	float deltaEta = hvEta-jetEta;
-	float deltaR = sqrt(deltaPhi*deltaPhi + deltaEta*deltaEta);
-	float jetpt = (jet_AntiKt4LCTopo_pt->at(nearestJet))/1000;
-	//cout << "Got deltaR" << endl;
-	//check to see if deltaR is within the cut
-	jetptBHist->Fill(jetpt);
-	if (deltaR < 0.3) {
-	  float emfrac = jet_AntiKt4LCTopo_emfrac->at(nearestJet);
-	  float energy = jet_AntiKt4LCTopo_E->at(nearestJet);
+      cout << "next particle" << endl;
+      float startx = mc_vx_x->at(i);
+      //cout << "Got startx" << endl;
+      float starty = mc_vx_y->at(i);
+      //cout << "Got starty" << endl;
+      float endx = mc_vx_x->at(mc_child_index->at(i).at(0));
+      //cout << "Got endx: " << endx << endl;
+      float endy = mc_vx_y->at(mc_child_index->at(i).at(0));
+      //cout << "Got endy: " << endy << endl;
+      float distance = sqrt((endx-startx)*(endx-startx) + (endy-starty)*(endy-starty))/1000.0;
+      //cout << "Got particle" << endl;
+      float hvEta = mc_eta->at(i);
+      //cout << "Got mcEta" << endl;
+      float hvPhi = mc_phi->at(i);
+      //cout << "Got mcPhi" << endl;
+      size_t nearestJet = GetNearestJet(hvEta, hvPhi, jet_AntiKt4LCTopo_eta, jet_AntiKt4LCTopo_phi);
+      //cout << "Got jet index: " << nearestJet << endl;
+      float jetEta = jet_AntiKt4LCTopo_eta->at(nearestJet);
+      //cout << "Got jetEta" << endl;
+      float jetPhi = jet_AntiKt4LCTopo_phi->at(nearestJet);
+      //cout << "Got jetPhi" << endl;
+      float trackPhi = trk_phi->at(i);
+      float deltaPhi = TVector2::Phi_mpi_pi(hvPhi-jetPhi);
+      float deltaEta = hvEta-jetEta;
+      float deltaR = sqrt(deltaPhi*deltaPhi + deltaEta*deltaEta);
+      float jetpt = (jet_AntiKt4LCTopo_pt->at(nearestJet))/1000;
+      //cout << "Got deltaR" << endl;
+      //check to see if deltaR is within the cut
+      jetptBHist->Fill(jetpt);
+      if (deltaR < 0.3) {
+	float emfrac = jet_AntiKt4LCTopo_emfrac->at(nearestJet);
+	float energy = jet_AntiKt4LCTopo_E->at(nearestJet);
 	  float emEnergy = emfrac*energy;
 	  float hadEnergy = (1-emfrac)*energy;
 	  float calRatio = 0;
@@ -167,7 +163,7 @@ Bool_t ChainPlot::Process(Long64_t entry)
 	    calRatio = log10(hadEnergy/emEnergy);
 	  }
 	  calRatioHist->Fill(calRatio);
-	  if (distance > 2.0 && distance < 4.25) {
+	  if (distance > 2.0 && distance < 3.27) {
 	    calRatioInCalHist->Fill(calRatio);
 	    distanceValid = true;
 	    cout << "In calorimeter" << endl;
@@ -186,20 +182,19 @@ Bool_t ChainPlot::Process(Long64_t entry)
 	    pionDistance->push_back(distance);
 	    calRatioValid = true;
 	  } else {
-
+	    
 	  }
 	  calRatioVsDecayLengthHist->Fill(distance, calRatio);
 	  noAssocJetHist->Fill(distance, deltaR);
 	  deltaRHist->Fill(deltaR);
 	}
 	//cout << "Done with pion" << endl;
-      } else if (pdgId == -11 || pdgId == -13) {
-	//cout << "lepton found" << endl;
-	leptonpTHist->Fill(mc_pt->at(i)/1000);
-      } else if (pdgId == 12 || pdgId == 14) {
-	//cout << "neutrino found" << endl;
-	missingpTHist->Fill(mc_pt->at(i)/1000);
-      }
+    } else if (pdgId == -11 || pdgId == -13) {
+      //cout << "lepton found" << endl;
+      leptonpTHist->Fill(mc_pt->at(i)/1000);
+    } else if (pdgId == 12 || pdgId == 14) {
+      //cout << "neutrino found" << endl;
+      missingpTHist->Fill(mc_pt->at(i)/1000);
     }
   }
   if (leptonValid) {
@@ -234,11 +229,11 @@ Bool_t ChainPlot::Process(Long64_t entry)
 	}
       }
     } 
-  }
+    }*/
   return kTRUE;
 }
 
-size_t ChainPlot::GetNearestJet(float hvEta, float hvPhi, vector<float> *jetEta, vector<float> *jetPhi)
+size_t QCDPlot::GetNearestJet(float hvEta, float hvPhi, vector<float> *jetEta, vector<float> *jetPhi)
 {
   float minDeltaR = 1000;
   int minIndex = 0;
@@ -256,7 +251,7 @@ size_t ChainPlot::GetNearestJet(float hvEta, float hvPhi, vector<float> *jetEta,
   return minIndex;
 }
 
-void ChainPlot::SlaveTerminate()
+void QCDPlot::SlaveTerminate()
 {
   // The SlaveTerminate() function is called after all entries or objects
   // have been processed. When running with PROOF SlaveTerminate() is called
@@ -264,24 +259,15 @@ void ChainPlot::SlaveTerminate()
   
 }
 
-void ChainPlot::Terminate()
+void QCDPlot::Terminate()
 {
   // The Terminate() function is the last function to be called during
   // a query. It always runs on the client, it can be used to present
   // the results graphically or save the results to file.
   cout << "Done processing" << endl;
-  cout << "Total Events: " << totalEvents << endl;
-  cout << "Passed Lepton Cuts: " << passedLeptonCuts << endl;
-  cout << "Passed MET Cuts: " << passedMETCuts << endl;
-  cout << "Passed calRatio cuts: " << passedCalRatioCut << endl;
-  cout << "WITH PION IN CALORIMETER" << endl;
-  cout << "Total Events: " << dTotal << endl;
-  cout << "Passed Lepton Cuts: " << dLepton << endl;
-  cout << "Passed MET Cuts: " << dMET << endl;
-  cout << "Passed calRatio cuts: " << dCalRatio << endl;
 
 
-  TFile *f = new TFile("chainplot.root", "RECREATE");
+  TFile *f = new TFile("qcdplot.root", "RECREATE");
   noAssocJetHist->Write();
   deltaRHist->Write();
   ptHist->Write();
