@@ -121,33 +121,33 @@ Bool_t QCDPlot::Process(Long64_t entry)
       int pdgId = mc_pdgId->at(i);
       cout << "next particle" << endl;
       float startx = mc_vx_x->at(i);
-      //cout << "Got startx" << endl;
+      cout << "Got startx" << endl;
       float starty = mc_vx_y->at(i);
-      //cout << "Got starty" << endl;
+      cout << "Got starty" << endl;
       float endx = mc_vx_x->at(mc_child_index->at(i).at(0));
-      //cout << "Got endx: " << endx << endl;
+      cout << "Got endx: " << endx << endl;
       float endy = mc_vx_y->at(mc_child_index->at(i).at(0));
-      //cout << "Got endy: " << endy << endl;
+      cout << "Got endy: " << endy << endl;
       float distance = sqrt((endx-startx)*(endx-startx) + (endy-starty)*(endy-starty))/1000.0;
-      //cout << "Got particle" << endl;
+      cout << "Got particle" << endl;
       float hvEta = mc_eta->at(i);
-      //cout << "Got mcEta" << endl;
+      cout << "Got mcEta" << endl;
       float hvPhi = mc_phi->at(i);
-      //cout << "Got mcPhi" << endl;
+      cout << "Got mcPhi" << endl;
       size_t nearestJet = GetNearestJet(hvEta, hvPhi, jet_AntiKt4LCTopo_eta, jet_AntiKt4LCTopo_phi);
-      //cout << "Got jet index: " << nearestJet << endl;
+      cout << "Got jet index: " << nearestJet << endl;
       float jetEta = jet_AntiKt4LCTopo_eta->at(nearestJet);
-      //cout << "Got jetEta" << endl;
+      cout << "Got jetEta" << endl;
       float jetPhi = jet_AntiKt4LCTopo_phi->at(nearestJet);
-      //cout << "Got jetPhi" << endl;
-      //	float trackPhi = trk_phi->at(i);
+      cout << "Got jetPhi" << endl;
+      //float trackPhi = trk_phi->at(i);
       float deltaPhi = TVector2::Phi_mpi_pi(hvPhi-jetPhi);
       float deltaEta = hvEta-jetEta;
       float deltaR = sqrt(deltaPhi*deltaPhi + deltaEta*deltaEta);
       float jetpt = (jet_AntiKt4LCTopo_pt->at(nearestJet))/1000;
-      //cout << "Got deltaR" << endl;
+      cout << "Got deltaR" << endl;
       //check to see if deltaR is within the cut
-      jetptBHist->Fill(jetpt);
+      //jetptBHist->Fill(jetpt);
       if (deltaR < 0.3) {
 	float emfrac = jet_AntiKt4LCTopo_emfrac->at(nearestJet);
 	float energy = jet_AntiKt4LCTopo_E->at(nearestJet);
@@ -259,6 +259,16 @@ void QCDPlot::Terminate()
 
 
   TFile *f = new TFile("qcdplot.root", "RECREATE");
+  cout << "Done processing" << endl;
+  cout << "Total Events: " << totalEvents << endl;
+  cout << "Passed Lepton Cuts: " << passedLeptonCuts << endl;
+  cout << "Passed MET Cuts: " << passedMETCuts << endl;
+  cout << "Passed calRatio cuts: " << passedCalRatioCut << endl;
+  /*cout << "WITH PION IN CALORIMETER" << endl;
+  cout << "Total Events: " << dTotal << endl;
+  cout << "Passed Lepton Cuts: " << dLepton << endl;
+  cout << "Passed MET Cuts: " << dMET << endl;
+  cout << "Passed calRatio cuts: " << dCalRatio << endl;*/
   /*noAssocJetHist->Write();
   deltaRHist->Write();
   ptHist->Write();
