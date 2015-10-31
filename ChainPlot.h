@@ -48,14 +48,18 @@ class ChainPlot : public TSelector {
   TH1F  *leptonpTHist;
   TH1F  *missingpTHist;
   TH1F  *missingpTHist2;
+  TH1F  *trkptHist;
+  TH1F  *numTrackHist;
   int   totalEvents = 0;
   int   passedLeptonCuts = 0;
   int   passedMETCuts = 0;
   int   passedCalRatioCut = 0;
+  int   passedTrackCut = 0;
   int   dTotal = 0;
   int   dLepton = 0;
   int   dMET = 0;
   int   dCalRatio = 0;
+  int   dTrack = 0;
   
   // Declaration of leaf types
   vector<float>   *jet_AntiKt4LCTopo_flavor_weight_MV1;
@@ -206,11 +210,21 @@ void ChainPlot::Init(TTree *tree)
   fChain->SetBranchStatus("MET_RefFinal_sumet", true);
   fChain->SetBranchAddress("MET_RefFinal_sumet", &MET_RefFinal_sumet, &b_MET_RefFinal_sumet); 
   
-  //fChain->SetBranchAddress("jet_AntiKt4LCTopo_isUgly", &jet_AntiKt4LCTopo_isUgly, &b_jet_AntiKt4LCTopo_isUgly);
-  //fChain->SetBranchAddress("trk_pt", &trk_pt, &b_trk_pt);
-  //fChain->SetBranchAddress("trk_eta", &trk_eta, &b_trk_eta);
-  //fChain->SetBranchAddress("trk_phi_wrtPV", &trk_phi_wrtPV, &b_trk_phi_wrtPV);
-  //fChain->SetBranchAddress("trk_cov_d0_wrtPV", &trk_cov_d0_wrtPV, &b_trk_cov_d0_wrtPV);
+  fChain->SetBranchStatus("jet_AntiKt4LCTopo_isUgly", true);
+  fChain->SetBranchAddress("jet_AntiKt4LCTopo_isUgly", &jet_AntiKt4LCTopo_isUgly, &b_jet_AntiKt4LCTopo_isUgly);
+
+  fChain->SetBranchStatus("trk_pt", true);
+  fChain->SetBranchAddress("trk_pt", &trk_pt, &b_trk_pt);
+
+  fChain->SetBranchStatus("trk_eta", true);
+  fChain->SetBranchAddress("trk_eta", &trk_eta, &b_trk_eta);
+
+  fChain->SetBranchStatus("trk_phi_wrtPV", true);
+  fChain->SetBranchAddress("trk_phi_wrtPV", &trk_phi_wrtPV, &b_trk_phi_wrtPV);
+
+  fChain->SetBranchStatus("trk_cov_d0_wrtPV", true);
+  fChain->SetBranchAddress("trk_cov_d0_wrtPV", &trk_cov_d0_wrtPV, &b_trk_cov_d0_wrtPV);
+
 }
 Bool_t ChainPlot::Notify()
 {

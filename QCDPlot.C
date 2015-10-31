@@ -42,7 +42,8 @@ void QCDPlot::Begin(TTree * /*tree*/)
   TString option = GetOption();
   //  noAssocJetHist = new TH2F("jet", "#Delta r against decay length; decay length [m]; #Delta r", 50, 5, 20.0, 100, 0.0, 4.0);
   // deltaRHist = new TH1F("deltaR", "#Delta r; #Delta r;", 100, 0, 4.0);
-  //ptHist = new TH1F("p_{T}", "p_{T}; #p_{T} [GeV]", 100, 0, 1000);
+  trkptHist = new TH1F("trk_p_{T}", "#trk p_{T}; #trk p_{T} [GeV]", 100, 0, 100);
+  numTrackHist = new TH1F("num tracks", "num tracks; num tracks", 15, 0, 15);
   //etaHist = new TH1F("#eta", "#eta; #eta", 100, 0.0, 4.0);
   //  distHist = new TH1F("distance", "decay length of vPion; decay length [m]", 100, 0, 6);
   //phiHist = new TH1F("#phi", "#phi; #phi", 100, 0.0, 4.0);
@@ -93,21 +94,27 @@ Bool_t QCDPlot::Process(Long64_t entry)
   // cout << "Looking at entry " << entry << endl;
   GetEntry(entry);
   //cout << "  -> Got entry" << endl;
-  //totalEvents++;
+  totalEvents++;
   TBranch *b = fChain->GetBranch("mc_pdgId");
   if (b == 0)  {
     cout << "  -> Oh, that is very bad. This is boot!" << endl;
     return true;
   }
   b->GetEntry(entry);
-  cout << "Looking at particles" << endl;
+  //cout << "Looking at particles" << endl;
+  if (totalEvents  % 1000 == 0) {
+    cout << totalEvents << " events processed" << endl;
+  }
   //missingpTHist->Fill(MET_RefFinal_et/1000);
   //missingpTHist2->Fill(MET_RefFinal_sumet/1000);
-  bool leptonValid = false;
+  // bool leptonValid = false;
   bool calRatioValid = false;
-  bool distanceValid = false;
+  bool trkValid = false;
+  for (size_t i = 0; i < trk_pt->size(); i++) {
+    trkptHist->Fill(trk_pt->at(i)/1000);
+  }
   //  vector<float>* pionDistance = new vector<float>();
-  for (size_t i = 0; i < mc_pdgId->size(); i++) {
+  /*for (size_t i = 0; i < mc_pdgId->size(); i++) {
     int pdgId = mc_pdgId->at(i);
     if (pdgId == -11 || pdgId == -13) {
       if (mc_pt->at(i)/1000 > 25 && abs(mc_eta->at(i)) <= 2.5) {
@@ -115,113 +122,106 @@ Bool_t QCDPlot::Process(Long64_t entry)
 	break;
       }
     }
-  }
-  for (size_t i = 0; i < mc_pdgId->size(); i++) { 
-    if (mc_child_index->at(i).size() != 0 && jet_AntiKt4LCTopo_eta->size() != 0) {
-      int pdgId = mc_pdgId->at(i);
-      cout << "next particle" << endl;
-      float startx = mc_vx_x->at(i);
-      cout << "Got startx" << endl;
-      float starty = mc_vx_y->at(i);
-      cout << "Got starty" << endl;
-      float endx = mc_vx_x->at(mc_child_index->at(i).at(0));
-      cout << "Got endx: " << endx << endl;
-      float endy = mc_vx_y->at(mc_child_index->at(i).at(0));
-      cout << "Got endy: " << endy << endl;
-      float distance = sqrt((endx-startx)*(endx-startx) + (endy-starty)*(endy-starty))/1000.0;
-      cout << "Got particle" << endl;
-      float hvEta = mc_eta->at(i);
-      cout << "Got mcEta" << endl;
-      float hvPhi = mc_phi->at(i);
-      cout << "Got mcPhi" << endl;
-      size_t nearestJet = GetNearestJet(hvEta, hvPhi, jet_AntiKt4LCTopo_eta, jet_AntiKt4LCTopo_phi);
-      cout << "Got jet index: " << nearestJet << endl;
-      float jetEta = jet_AntiKt4LCTopo_eta->at(nearestJet);
-      cout << "Got jetEta" << endl;
-      float jetPhi = jet_AntiKt4LCTopo_phi->at(nearestJet);
-      cout << "Got jetPhi" << endl;
-      //float trackPhi = trk_phi->at(i);
-      float deltaPhi = TVector2::Phi_mpi_pi(hvPhi-jetPhi);
-      float deltaEta = hvEta-jetEta;
-      float deltaR = sqrt(deltaPhi*deltaPhi + deltaEta*deltaEta);
-      float jetpt = (jet_AntiKt4LCTopo_pt->at(nearestJet))/1000;
-      cout << "Got deltaR" << endl;
-      //check to see if deltaR is within the cut
-      //jetptBHist->Fill(jetpt);
-      if (deltaR < 0.3) {
-	float emfrac = jet_AntiKt4LCTopo_emfrac->at(nearestJet);
-	float energy = jet_AntiKt4LCTopo_E->at(nearestJet);
-	float emEnergy = emfrac*energy;
-	float hadEnergy = (1-emfrac)*energy;
-	float calRatio = 0;
-	if (emEnergy == 0 && hadEnergy ==0) {
-	  cout << "Is this really a jet?" << endl;
-	  calRatio = 0;
-	} else if (emEnergy == 0 && hadEnergy != 0) {
-	  cout << "Giant calRatio" << endl;
-	  calRatio = 20;
-	} else {
-	  calRatio = log10(hadEnergy/emEnergy);
-	}
-	//calRatioHist->Fill(calRatio);
-	if (distance > 2.0 && distance < 3.27) {
-	  //calRatioInCalHist->Fill(calRatio);
-	  distanceValid = true;
-	  cout << "In calorimeter" << endl;
-	}
-	else {
-	  if (distance <= 2.0) {
-	    //calRatioBeforeCalHist->Fill(calRatio);
-	    cout << "Before calorimeter" << endl;
-	  }
-	  else {
-	    //calRatioAfterCalHist->Fill(calRatio);
-	    cout << "After calorimeter" << endl;
-	  }
-	    if (calRatio > 1) {
-	      // pionDistance->push_back(distance);
-	      calRatioValid = true;
-	    } 
-	}
-	//calRatioVsDecayLengthHist->Fill(distance, calRatio);
-	//noAssocJetHist->Fill(distance, deltaR);
-	//deltaRHist->Fill(deltaR);
-	
-      }
-    }
-  }
-  if (leptonValid) {
+    }*/
+  /*if (leptonValid) {
     passedLeptonCuts++;
-    cout << "passed lepton cuts" << endl;
-    if (MET_RefFinal_et/1000 >= 25) {  
-      passedMETCuts++;
+    if (MET_RefFinal_et/1000 >= 25) {
+    passedMETCuts++;*/
+      for (size_t i = 0; i < mc_pdgId->size(); i++) { 
+	if (mc_child_index->at(i).size() != 0 && jet_AntiKt4LCTopo_eta->size() != 0) {
+	  int pdgId = mc_pdgId->at(i);
+	  //      cout << "next particle" << endl;
+	  float startx = mc_vx_x->at(i);
+	  //cout << "Got startx" << endl;
+	  float starty = mc_vx_y->at(i);
+	  //cout << "Got starty" << endl;
+	  float endx = mc_vx_x->at(mc_child_index->at(i).at(0));
+	  //cout << "Got endx: " << endx << endl;
+	  float endy = mc_vx_y->at(mc_child_index->at(i).at(0));
+	  //cout << "Got endy: " << endy << endl;
+	  float distance = sqrt((endx-startx)*(endx-startx) + (endy-starty)*(endy-starty))/1000.0;
+	  //cout << "Got particle" << endl;
+	  float hvEta = mc_eta->at(i);
+	  //cout << "Got mcEta" << endl;
+	  float hvPhi = mc_phi->at(i);
+	  //cout << "Got mcPhi" << endl;
+	  size_t nearestJet = GetNearestJet(hvEta, hvPhi, jet_AntiKt4LCTopo_eta, jet_AntiKt4LCTopo_phi);
+	  //cout << "Got jet index: " << nearestJet << endl;
+	  float jetEta = jet_AntiKt4LCTopo_eta->at(nearestJet);
+	//cout << "Got jetEta" << endl;
+	  float jetPhi = jet_AntiKt4LCTopo_phi->at(nearestJet);
+	  //cout << "Got jetPhi" << endl;
+	  float deltaPhi = TVector2::Phi_mpi_pi(hvPhi-jetPhi);
+	  float deltaEta = hvEta-jetEta;
+	  float deltaR = sqrt(deltaPhi*deltaPhi + deltaEta*deltaEta);
+	  float jetpt = (jet_AntiKt4LCTopo_pt->at(nearestJet))/1000;
+	  //cout << "Got deltaR" << endl;
+	  //check to see if deltaR is within the cut
+	  //jetptBHist->Fill(jetpt);
+	  if (deltaR < 0.3) {
+	    float emfrac = jet_AntiKt4LCTopo_emfrac->at(nearestJet);
+	    float energy = jet_AntiKt4LCTopo_E->at(nearestJet);
+	    float emEnergy = emfrac*energy;
+	    float hadEnergy = (1-emfrac)*energy;
+	    float calRatio = 0;
+	    if (emEnergy == 0 && hadEnergy ==0) {
+	      //  cout << "Is this really a jet?" << endl;
+	      calRatio = 0;
+	    } else if (emEnergy == 0 && hadEnergy != 0) {
+	      //cout << "Giant calRatio" << endl;
+	      calRatio = 20;
+	    } else {
+	      calRatio = log10(hadEnergy/emEnergy);
+	    }
+	    //calRatioHist->Fill(calRatio);
+	  
+	    if (calRatio > 1) {
+	      calRatioValid = true;
+	      int badTracks = 0;
+	      for (size_t j = 0; j < trk_pt->size(); j++) {
+		float trkDeltaPhi = TVector2::Phi_mpi_pi(hvPhi-trk_phi_wrtPV->at(j));
+		float trkDeltaEta = hvEta-trk_eta->at(j);
+		float trkDeltaR = sqrt(trkDeltaPhi*trkDeltaPhi + trkDeltaEta*trkDeltaEta);
+		if (trk_pt->at(j)/1000 >= 1 && trkDeltaR <= 0.2) {
+		  badTracks++;
+		}
+	      } 
+	      if (badTracks > 0) {
+		trkValid |= false;
+	      } else {
+		trkValid |= true;
+	      }
+	      numTrackHist->Fill(badTracks);
+	    }
+	    //calRatioVsDecayLengthHist->Fill(distance, calRatio);
+	    //noAssocJetHist->Fill(distance, deltaR);
+	    //deltaRHist->Fill(deltaR);
+	    
+	  } // if (deltaR < 0.3)
+	} // if (mcChildIndex...)
+      } // for (size_t...)
+      //} // if (MET_RefFinal...)
+      //} // if (leptonValid)
+  if (calRatioValid) {
+    passedCalRatioCut++;
+  }
+  if (trkValid) {
+    passedTrkCut++;
+  }
+    /*if (distanceValid) {
+      dTotal++;
+      if (leptonValid) {
+      dLepton++;
+      cout << "passed lepton cuts" << endl;
+      if (MET_RefFinal_et/1000 >= 25) {  
+      dMET++;
       cout << "passed MET cuts" << endl;
       if (calRatioValid) {
-	cout << "passed calRatio cut" << endl;
-	passedCalRatioCut++;
-	/* if (!distanceValid) {
-	   for (size_t i = 0; i < pionDistance->size(); i++) {
-	   //distHist->Fill(pionDistance->at(i));
-	   cout << "3000" << endl;
-	   }
-	   }*/
+      cout << "passed calRatio cut" << endl;
+      dCalRatio++;
       }
-    }
-  }
-  /*if (distanceValid) {
-    dTotal++;
-    if (leptonValid) {
-    dLepton++;
-    cout << "passed lepton cuts" << endl;
-    if (MET_RefFinal_et/1000 >= 25) {  
-    dMET++;
-    cout << "passed MET cuts" << endl;
-    if (calRatioValid) {
-    cout << "passed calRatio cut" << endl;
-    dCalRatio++;
-    }
-    }
-    } */
+      }
+      } */
   return kTRUE;
 }
     size_t QCDPlot::GetNearestJet(float hvEta, float hvPhi, vector<float> *jetEta, vector<float> *jetPhi)
@@ -256,20 +256,20 @@ void QCDPlot::Terminate()
   // a query. It always runs on the client, it can be used to present
   // the results graphically or save the results to file.
   cout << "Done processing" << endl;
-
-
   TFile *f = new TFile("qcdplot.root", "RECREATE");
-  cout << "Done processing" << endl;
   cout << "Total Events: " << totalEvents << endl;
-  cout << "Passed Lepton Cuts: " << passedLeptonCuts << endl;
-  cout << "Passed MET Cuts: " << passedMETCuts << endl;
+  //cout << "Passed Lepton Cuts: " << passedLeptonCuts << endl;
+  //cout << "Passed MET Cuts: " << passedMETCuts << endl;
   cout << "Passed calRatio cuts: " << passedCalRatioCut << endl;
+  cout << "Passed track cuts: " << passedTrkCut << endl;
+  numTrackHist->Write();
+  trkptHist->Write();
   /*cout << "WITH PION IN CALORIMETER" << endl;
   cout << "Total Events: " << dTotal << endl;
   cout << "Passed Lepton Cuts: " << dLepton << endl;
   cout << "Passed MET Cuts: " << dMET << endl;
   cout << "Passed calRatio cuts: " << dCalRatio << endl;*/
-  /*noAssocJetHist->Write();
+  /*noAssocJetHist->Write()
   deltaRHist->Write();
   ptHist->Write();
   etaHist->Write();

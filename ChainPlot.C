@@ -40,6 +40,8 @@ void ChainPlot::Begin(TTree * /*tree*/)
   // The tree argument is deprecated (on PROOF 0 is passed).
   
   TString option = GetOption();
+  trkptHist = new TH1F("track pt", "#track p_t; #track p_t [GeV]", 100, 0, 100);
+  numTrackHist = new TH1F("num tracks", "num tracks; num tracks", 15, 0, 15);
   noAssocJetHist = new TH2F("jet", "#Delta r against decay length; decay length [m]; #Delta r", 50, 5, 20.0, 100, 0.0, 4.0);
   deltaRHist = new TH1F("deltaR", "#Delta r; #Delta r;", 100, 0, 4.0);
   ptHist = new TH1F("p_{T}", "p_{T} of vpion; #p_{T} [GeV]", 100, 0, 1000);
@@ -100,12 +102,16 @@ Bool_t ChainPlot::Process(Long64_t entry)
     return true;
   }
   b->GetEntry(entry);
-  cout << "Looking at particles" << endl;
+  if (totalEvents % 1000 == 0) {
+    cout << "events processed: " << totalEvents << endl;;
+  }
+  //cout << "Looking at particles" << endl;
   missingpTHist->Fill(MET_RefFinal_et/1000);
   missingpTHist2->Fill(MET_RefFinal_sumet/1000);
   bool leptonValid = false;
   bool calRatioValid = false;
   bool distanceValid = false;
+  bool trkValid = false;
   vector<float>* pionDistance = new vector<float>();
   for (size_t i = 0; i < mc_pdgId->size(); i++) {
     int pdgId = mc_pdgId->at(i);
@@ -116,11 +122,14 @@ Bool_t ChainPlot::Process(Long64_t entry)
       }
     }
   }
+  for (size_t i = 0; i < trk_pt->size(); i++) {
+    trkptHist->Fill(trk_pt->at(i)/1000);
+  }
   for (size_t i = 0; i < mc_pdgId->size(); i++) { 
     if (mc_child_index->at(i).size() != 0 && jet_AntiKt4LCTopo_eta->size() != 0) {
       int pdgId = mc_pdgId->at(i);
       if (pdgId == 36) {
-	cout << "next pion" << endl;
+	//cout << "next pion" << endl;
 	float startx = mc_vx_x->at(i);
 	//cout << "Got startx" << endl;
 	float starty = mc_vx_y->at(i);
@@ -141,9 +150,6 @@ Bool_t ChainPlot::Process(Long64_t entry)
 	//cout << "Got jetEta" << endl;
 	float jetPhi = jet_AntiKt4LCTopo_phi->at(nearestJet);
 	//cout << "Got jetPhi" << endl;
-	float trkPhi = trk_phi_wrtPV->at(i);
-	float trkEta = trk_eta->at(i);
-	float trkPT = trk_pt->at(i);
 	float deltaPhi = TVector2::Phi_mpi_pi(hvPhi-jetPhi);
 	float deltaEta = hvEta-jetEta;
 	float deltaR = sqrt(deltaPhi*deltaPhi + deltaEta*deltaEta);
@@ -158,10 +164,10 @@ Bool_t ChainPlot::Process(Long64_t entry)
 	  float hadEnergy = (1-emfrac)*energy;
 	  float calRatio = 0;
 	  if (emEnergy == 0 && hadEnergy ==0) {
-	    cout << "Is this really a jet?" << endl;
+	    //  cout << "Is this really a jet?" << endl;
 	    calRatio = 0;
 	  } else if (emEnergy == 0 && hadEnergy != 0) {
-	    cout << "Giant calRatio" << endl;
+	    //cout << "Giant calRatio" << endl;
 	    calRatio = 20;
 	  } else {
 	    calRatio = log10(hadEnergy/emEnergy);
@@ -170,23 +176,37 @@ Bool_t ChainPlot::Process(Long64_t entry)
 	  if (distance > 2.0 && distance < 4.25) {
 	    calRatioInCalHist->Fill(calRatio);
 	    distanceValid = true;
-	    cout << "In calorimeter" << endl;
+	    //cout << "In calorimeter" << endl;
 	  }
 	  else {
 	    if (distance <= 2.0) {
 	      calRatioBeforeCalHist->Fill(calRatio);
-	      cout << "Before calorimeter" << endl;
+	      //cout << "Before calorimeter" << endl;
 	    }
 	    else {
 	      calRatioAfterCalHist->Fill(calRatio);
-	      cout << "After calorimeter" << endl;
+	      //     cout << "After calorimeter" << endl;
 	    }
 	  }
 	  if (calRatio > 1) {
 	    pionDistance->push_back(distance);
 	    calRatioValid = true;
-	  } else {
-
+	    int badTracks = 0;
+	    for (size_t j = 0; j < trk_pt->size(); j++) {
+	      //cout << "tracks" << endl;
+	      float trkDeltaPhi = TVector2::Phi_mpi_pi(hvPhi-trk_phi_wrtPV->at(j));
+	      float trkDeltaEta = hvEta-trk_eta->at(j);
+	      float trkDeltaR = sqrt(trkDeltaPhi*trkDeltaPhi + trkDeltaEta*trkDeltaEta);
+	      if (trk_pt->at(j)/1000 >= 1 && trkDeltaR <= 0.2) {
+		badTracks++;
+	      }
+	    } 
+	    if (badTracks > 0) {
+	      trkValid |= false;
+	    } else {
+	      trkValid |= true;
+	    } 
+	    numTrackHist->Fill(badTracks);
 	  }
 	  calRatioVsDecayLengthHist->Fill(distance, calRatio);
 	  noAssocJetHist->Fill(distance, deltaR);
@@ -204,17 +224,21 @@ Bool_t ChainPlot::Process(Long64_t entry)
   }
   if (leptonValid) {
     passedLeptonCuts++;
-    cout << "passed lepton cuts" << endl;
+    //    cout << "passed lepton cuts" << endl;
     if (MET_RefFinal_et/1000 >= 25) {  
       passedMETCuts++;
-      cout << "passed MET cuts" << endl;
+      //cout << "passed MET cuts" << endl;
       if (calRatioValid) {
-	cout << "passed calRatio cut" << endl;
+	//cout << "passed calRatio cut" << endl;
 	passedCalRatioCut++;
+	if (trkValid) {
+	  //cout << "passed track cut" << endl;
+	  passedTrackCut++;
+	}
 	if (!distanceValid) {
 	  for (size_t i = 0; i < pionDistance->size(); i++) {
 	    distHist->Fill(pionDistance->at(i));
-	    cout << "3000" << endl;
+	    //cout << "3000" << endl;
 	  }
 	}
       }
@@ -224,13 +248,17 @@ Bool_t ChainPlot::Process(Long64_t entry)
     dTotal++;
     if (leptonValid) {
       dLepton++;
-      cout << "passed lepton cuts" << endl;
+      //      cout << "passed lepton cuts" << endl;
       if (MET_RefFinal_et/1000 >= 25) {  
 	dMET++;
-	cout << "passed MET cuts" << endl;
+	//cout << "passed MET cuts" << endl;
 	if (calRatioValid) {
-	  cout << "passed calRatio cut" << endl;
+	  //cout << "passed calRatio cut" << endl;
 	  dCalRatio++;
+	  if (trkValid) {
+	    //cout << "passed track cut" << endl;
+	    dTrack++;
+	  } 
 	}
       }
     } 
@@ -274,16 +302,19 @@ void ChainPlot::Terminate()
   cout << "Passed Lepton Cuts: " << passedLeptonCuts << endl;
   cout << "Passed MET Cuts: " << passedMETCuts << endl;
   cout << "Passed calRatio cuts: " << passedCalRatioCut << endl;
+  cout << "Passed track cuts: " << passedTrackCut << endl;
   cout << "WITH PION IN CALORIMETER" << endl;
   cout << "Total Events: " << dTotal << endl;
   cout << "Passed Lepton Cuts: " << dLepton << endl;
   cout << "Passed MET Cuts: " << dMET << endl;
   cout << "Passed calRatio cuts: " << dCalRatio << endl;
-
+  cout << "Passed track cuts: " << dTrack << endl;
 
   TFile *f = new TFile("chainplot.root", "RECREATE");
   noAssocJetHist->Write();
   deltaRHist->Write();
+  trkptHist->Write();
+  numTrackHist->Write();
   ptHist->Write();
   etaHist->Write();
   distHist->Write();
