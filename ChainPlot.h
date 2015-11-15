@@ -60,6 +60,9 @@ class ChainPlot : public TSelector {
   int   dMET = 0;
   int   dCalRatio = 0;
   int   dTrack = 0;
+  int   totalJets = 0;
+  int   jetsPassingCalRatioCut = 0;
+  int   jetsPassingTrackCut = 0;
   
   // Declaration of leaf types
   vector<float>   *jet_AntiKt4LCTopo_flavor_weight_MV1;
@@ -117,6 +120,9 @@ class ChainPlot : public TSelector {
   virtual Bool_t  Notify();
   virtual Bool_t  Process(Long64_t entry);
   virtual size_t  GetNearestJet(float hvEta, float hvPhi, vector<float> *jetEta, vector<float> *jetPhi);
+
+  virtual float   CalculateCalRatio(size_t jetIndex);
+  virtual Bool_t  CheckTrack(size_t jetIndex);
   virtual Int_t   GetEntry(Long64_t entry, Int_t getall = 0) { return fChain ? fChain->GetTree()->GetEntry(entry, getall) : 0; }
   virtual void    SetOption(const char *option) { fOption = option; }
   virtual void    SetObject(TObject *obj) { fObject = obj; }

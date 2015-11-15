@@ -122,9 +122,6 @@ Bool_t ChainPlot::Process(Long64_t entry)
       }
     }
   }
-  for (size_t i = 0; i < trk_pt->size(); i++) {
-    trkptHist->Fill(trk_pt->at(i)/1000);
-  }
   for (size_t i = 0; i < mc_pdgId->size(); i++) { 
     if (mc_child_index->at(i).size() != 0 && jet_AntiKt4LCTopo_eta->size() != 0) {
       int pdgId = mc_pdgId->at(i);
@@ -158,20 +155,7 @@ Bool_t ChainPlot::Process(Long64_t entry)
 	//check to see if deltaR is within the cut
 	jetptBHist->Fill(jetpt);
 	if (deltaR < 0.3) {
-	  float emfrac = jet_AntiKt4LCTopo_emfrac->at(nearestJet);
-	  float energy = jet_AntiKt4LCTopo_E->at(nearestJet);
-	  float emEnergy = emfrac*energy;
-	  float hadEnergy = (1-emfrac)*energy;
-	  float calRatio = 0;
-	  if (emEnergy == 0 && hadEnergy ==0) {
-	    //  cout << "Is this really a jet?" << endl;
-	    calRatio = 0;
-	  } else if (emEnergy == 0 && hadEnergy != 0) {
-	    //cout << "Giant calRatio" << endl;
-	    calRatio = 20;
-	  } else {
-	    calRatio = log10(hadEnergy/emEnergy);
-	  }
+	  float calRatio = CalculateCalRatio(nearestJet);
 	  calRatioHist->Fill(calRatio);
 	  if (distance > 2.0 && distance < 4.25) {
 	    calRatioInCalHist->Fill(calRatio);
@@ -191,22 +175,7 @@ Bool_t ChainPlot::Process(Long64_t entry)
 	  if (calRatio > 1) {
 	    pionDistance->push_back(distance);
 	    calRatioValid = true;
-	    int badTracks = 0;
-	    for (size_t j = 0; j < trk_pt->size(); j++) {
-	      //cout << "tracks" << endl;
-	      float trkDeltaPhi = TVector2::Phi_mpi_pi(hvPhi-trk_phi_wrtPV->at(j));
-	      float trkDeltaEta = hvEta-trk_eta->at(j);
-	      float trkDeltaR = sqrt(trkDeltaPhi*trkDeltaPhi + trkDeltaEta*trkDeltaEta);
-	      if (trk_pt->at(j)/1000 >= 1 && trkDeltaR <= 0.2) {
-		badTracks++;
-	      }
-	    } 
-	    if (badTracks > 0) {
-	      trkValid |= false;
-	    } else {
-	      trkValid |= true;
-	    } 
-	    numTrackHist->Fill(badTracks);
+	    //bool trackValid = CheckTrack(jetIndex);
 	  }
 	  calRatioVsDecayLengthHist->Fill(distance, calRatio);
 	  noAssocJetHist->Fill(distance, deltaR);
@@ -219,6 +188,16 @@ Bool_t ChainPlot::Process(Long64_t entry)
       } else if (pdgId == 12 || pdgId == 14) {
 	//cout << "neutrino found" << endl;
 	missingpTHist->Fill(mc_pt->at(i)/1000);
+      }
+    }
+  }
+  totalJets += jet_AntiKt4LCTopo_eta->size();
+  for (size_t i = 0; i < jet_AntiKt4LCTopo_eta->size(); i++) {
+    float calRatio = CalculateCalRatio(i);
+    if (calRatio > 1.2) {
+      jetsPassingCalRatioCut++;
+      if (CheckTrack(i)) {
+	jetsPassingTrackCut++;
       }
     }
   }
@@ -266,6 +245,44 @@ Bool_t ChainPlot::Process(Long64_t entry)
   return kTRUE;
 }
 
+Bool_t ChainPlot::CheckTrack(size_t jetIndex) {
+   int badTracks = 0;
+   float jetPhi = jet_AntiKt4LCTopo_phi->at(jetIndex);
+   float jetEta = jet_AntiKt4LCTopo_eta->at(jetIndex);
+   for (size_t j = 0; j < trk_pt->size(); j++) {
+     //cout << "tracks" << endl;
+     float trkDeltaPhi = TVector2::Phi_mpi_pi(jetPhi-trk_phi_wrtPV->at(j));
+     float trkDeltaEta = jetEta-trk_eta->at(j);
+     float trkDeltaRSquared = trkDeltaPhi*trkDeltaPhi + trkDeltaEta*trkDeltaEta;
+     if (trkDeltaRSquared <= 0.04) {
+       float trkPt = trk_pt->at(j)/1000;
+       trkptHist->Fill(trkPt);
+       if (trkPt >= 1) {
+	 badTracks++;
+       }
+     }
+   } 
+   numTrackHist->Fill(badTracks);
+   return (badTracks == 0); 
+}
+
+float ChainPlot::CalculateCalRatio(size_t jetIndex) {
+  float emfrac = jet_AntiKt4LCTopo_emfrac->at(jetIndex);
+  float energy = jet_AntiKt4LCTopo_E->at(jetIndex);
+  float emEnergy = emfrac*energy;
+  float hadEnergy = (1-emfrac)*energy;
+  float calRatio = 0;
+  if (emEnergy == 0 && hadEnergy ==0) {
+    //  cout << "Is this really a jet?" << endl;
+    calRatio = 0;
+  } else if (emEnergy == 0 && hadEnergy != 0) {
+    //cout << "Giant calRatio" << endl;
+    calRatio = 20;
+  } else {
+    calRatio = log10(hadEnergy/emEnergy);
+  }
+}
+
 size_t ChainPlot::GetNearestJet(float hvEta, float hvPhi, vector<float> *jetEta, vector<float> *jetPhi)
 {
   float minDeltaR = 1000;
@@ -309,6 +326,10 @@ void ChainPlot::Terminate()
   cout << "Passed MET Cuts: " << dMET << endl;
   cout << "Passed calRatio cuts: " << dCalRatio << endl;
   cout << "Passed track cuts: " << dTrack << endl;
+
+  cout << "Total Jets: " << totalJets << endl;
+  cout << "Passed calRatio cuts: " << jetsPassingCalRatioCut << endl;
+  cout << "Passed track cuts: " << jetsPassingTrackCut << endl;
 
   TFile *f = new TFile("chainplot.root", "RECREATE");
   noAssocJetHist->Write();
