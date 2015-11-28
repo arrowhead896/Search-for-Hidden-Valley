@@ -61,6 +61,7 @@ void ChainPlot::Begin(TTree * /*tree*/)
   leptonpTHist = new TH1F("leptonpTHist", "p_{T} of leptons (from the W decay); #p_{T} [GeV]", 100, 0, 1000);
   missingpTHist = new TH1F("missingpTHist", "missing energy (p_{T} of neutrinos from W decay); #missing E_{T} [GeV]", 100, -1000, 1000);
   missingpTHist2 = new TH1F("missingpTHist (sumet)", "missing energy (p_{T} of neutrinos from W decay); #missing E_{T} [GeV]", 100, -1000, 1000);
+  jetpTCuts = new TH1F("cuts on jet pT", "cut on jet pT vs. number passing cut; #jet p_{T} cut [GeV]; #number passing cut", 50, 0, 50);
 }
 
 void ChainPlot::SlaveBegin(TTree * /*tree*/)
@@ -191,16 +192,29 @@ Bool_t ChainPlot::Process(Long64_t entry)
       }
     }
   }
-  totalJets += jet_AntiKt4LCTopo_eta->size();
+  
   for (size_t i = 0; i < jet_AntiKt4LCTopo_eta->size(); i++) {
-    float calRatio = CalculateCalRatio(i);
-    if (calRatio > 1.2) {
-      jetsPassingCalRatioCut++;
-      if (CheckTrack(i)) {
-	jetsPassingTrackCut++;
+    float jetPt = jet_AntiKt4LCTopo_pt->at(i)/1000;
+    if (jetPt > 25) {
+      totalJets++;	
+      float jetEta = jet_AntiKt4LCTopo_eta->at(i);
+      if (jetEta * jetEta < 1.7*1.7) {
+	float calRatio = CalculateCalRatio(i);
+	if (calRatio > 1.2) {
+	  jetsPassingCalRatioCut++;
+	  if (CheckTrack(i)) {	    
+	    for (size_t j = 0; j < 50; j++) {
+	      if (jetPt > j) {
+		jetpTCuts->Fill(j);
+	      }
+	    }
+	    jetsPassingTrackCut++;
+	  }
+	}
       }
     }
   }
+
   if (leptonValid) {
     passedLeptonCuts++;
     //    cout << "passed lepton cuts" << endl;
@@ -331,7 +345,7 @@ void ChainPlot::Terminate()
   cout << "Passed calRatio cuts: " << jetsPassingCalRatioCut << endl;
   cout << "Passed track cuts: " << jetsPassingTrackCut << endl;
 
-  TFile *f = new TFile("chainplot.root", "RECREATE");
+  TFile *f = new TFile("qcdplot.root", "RECREATE");
   noAssocJetHist->Write();
   deltaRHist->Write();
   trkptHist->Write();
@@ -353,6 +367,7 @@ void ChainPlot::Terminate()
   leptonpTHist->Write();
   missingpTHist->Write();
   missingpTHist2->Write();
+  jetpTCuts->Write();
   f->Write();
   f->Close();
 }

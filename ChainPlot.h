@@ -50,6 +50,7 @@ class ChainPlot : public TSelector {
   TH1F  *missingpTHist2;
   TH1F  *trkptHist;
   TH1F  *numTrackHist;
+  TH1F  *jetpTCuts;
   int   totalEvents = 0;
   int   passedLeptonCuts = 0;
   int   passedMETCuts = 0;
