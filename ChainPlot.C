@@ -123,6 +123,7 @@ Bool_t ChainPlot::Process(Long64_t entry)
       }
     }
   }
+  // THIS IS THE START OF THE LOOP
   for (size_t i = 0; i < mc_pdgId->size(); i++) { 
     if (mc_child_index->at(i).size() != 0 && jet_AntiKt4LCTopo_eta->size() != 0) {
       int pdgId = mc_pdgId->at(i);
@@ -183,6 +184,7 @@ Bool_t ChainPlot::Process(Long64_t entry)
 	  deltaRHist->Fill(deltaR);
 	}
 	//cout << "Done with pion" << endl;
+	// don't worry about this stuff below
       } else if (pdgId == -11 || pdgId == -13) {
 	//cout << "lepton found" << endl;
 	leptonpTHist->Fill(mc_pt->at(i)/1000);
